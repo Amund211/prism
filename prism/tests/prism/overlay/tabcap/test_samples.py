@@ -1,5 +1,5 @@
 """
-Team recognition on the labeled R2 fixtures (tests/tabcap_fixtures.py).
+Team recognition on the labeled bucket fixtures (tests/tabcap_fixtures.py).
 
 Off by default (download + minutes of CPU). Run one of:
     uv run pytest tests/prism/overlay/tabcap/test_samples.py --tabcap=train
@@ -7,17 +7,26 @@ Off by default (download + minutes of CPU). Run one of:
     ... --tabcap=all
 
 Train / test split (prototype plan, "Training and test data"):
-- train: one test per image, asserts the exact result in
+- train: one test per train image, asserts the exact outcome in
   tests/data/tabcap_expected.json, plus the summary scores. Algorithm work
   looks at these only.
 - test: the summary scores only, no per-image results. Do not tune on them.
-- all: both, on all fixtures. For the final check.
---tabcap-update writes the current per-image results as the expected ones.
+- all: per-image tests on train, summary on all fixtures. For the final check.
+--tabcap=train --tabcap-update rewrites tabcap_expected.json.
+
+tabcap_expected.json, per image, players by outcome (label = the truth):
+- correct: {name: team}
+- wrong: {name: "got <team>, label <team>"}
+- unknown: {name: "label <team>"} (no team read)
+- unscored: {name: team read or null} (no team in the label: respawning,
+  spectator, npc, or covered by the overlay)
+- extra: {name: team} (known, not in the list, but got a team)
+An improvement moves names from wrong / unknown to correct.
 """
 
 import json
 from collections.abc import Iterator
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -34,30 +43,31 @@ from tests.tabcap_fixtures import (
 
 MANIFEST = load_manifest()
 EXPECTED = DATA_DIR / "tabcap_expected.json"
+TRAIN = [f.name for f in MANIFEST.select("train")]
 
-# Hypixel team letters; "." = no team read
-LETTER = {
-    "red": "r",
-    "blue": "b",
-    "green": "g",
-    "yellow": "y",
-    "aqua": "a",
-    "white": "w",
-    "pink": "p",
-    "gray": "s",
-}
+Outcome = dict[str, dict[str, str | None]]
+
+_results: dict[str, tuple[dict[str, Any], Outcome]] = {}
 
 
-@dataclass(frozen=True)
-class Result:
-    # One letter per label row, so no player names are stored in the repo
-    rows: str
-    # Known names that are not in the list (dead / left) but got a team
-    extra: int
-
-
-_results: dict[str, tuple[dict[str, Any], Result]] = {}
-_updates: dict[str, Result] = {}
+def outcome(label: dict[str, Any], got: dict[str, str]) -> Outcome:
+    out: Outcome = {k: {} for k in ("correct", "wrong", "unknown", "unscored")}
+    for row in label["rows"]:
+        name, team = row["name"], row["team"]
+        if name is None:
+            continue
+        read = got.get(name)
+        if row.get("npc") or row.get("covered") or team is None:
+            out["unscored"][name] = read
+        elif read == team:
+            out["correct"][name] = team
+        elif read is None:
+            out["unknown"][name] = f"label {team}"
+        else:
+            out["wrong"][name] = f"got {read}, label {team}"
+    names = {row["name"] for row in label["rows"]}
+    out["extra"] = {n: t for n, t in got.items() if n not in names}
+    return {k: dict(sorted(v.items())) for k, v in out.items()}
 
 
 def _selection(config: pytest.Config) -> Selection | None:
@@ -67,13 +77,8 @@ def _selection(config: pytest.Config) -> Selection | None:
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     if "fixture_name" in metafunc.fixturenames:
-        selection = _selection(metafunc.config)
-        names = (
-            [f.name for f in MANIFEST.select(selection)]
-            if selection in ("train", "all")
-            else []
-        )
-        metafunc.parametrize("fixture_name", names)
+        per_image = _selection(metafunc.config) in ("train", "all")
+        metafunc.parametrize("fixture_name", TRAIN if per_image else [])
 
 
 @pytest.fixture(scope="module")
@@ -83,13 +88,14 @@ def tabcap_dir(request: pytest.FixtureRequest) -> Iterator[Path]:
         pytest.skip("pass --tabcap=train|test|all")
     yield ensure(MANIFEST, MANIFEST.select(selection))
 
-    if _updates:
-        old = json.loads(EXPECTED.read_text()) if EXPECTED.is_file() else {}
-        new = {**old, **{n: asdict(r) for n, r in _updates.items()}}
-        EXPECTED.write_text(json.dumps(dict(sorted(new.items())), indent=1) + "\n")
+    if request.config.getoption("tabcap_update") and selection == "train":
+        # Rewrite all of it: names that left the train split go away
+        new = {n: _results[n][1] for n in TRAIN if n in _results}
+        if len(new) == len(TRAIN):
+            EXPECTED.write_text(json.dumps(new, indent=1, ensure_ascii=False) + "\n")
 
 
-def _run(name: str, directory: Path) -> tuple[dict[str, Any], Result]:
+def _run(name: str, directory: Path) -> tuple[dict[str, Any], Outcome]:
     if name not in _results:
         from PIL import Image
 
@@ -98,31 +104,44 @@ def _run(name: str, directory: Path) -> tuple[dict[str, Any], Result]:
         label: dict[str, Any] = json.loads((directory / f"{name}.json").read_text())
         with Image.open(directory / f"{name}.png") as image:
             got = read_teams(image, label["known"])
-
-        names = [row["name"] for row in label["rows"]]
-        rows = "".join(LETTER[t] if (t := got.get(n)) else "." for n in names)
-        extra = len(set(got) - set(names))
-        _results[name] = (label, Result(rows, extra))
+        _results[name] = (label, outcome(label, dict(got)))
     return _results[name]
+
+
+def test_expected_is_train_split() -> None:
+    """tabcap_expected.json has exactly the train images. Needs no download"""
+    expected = json.loads(EXPECTED.read_text())
+    assert list(expected) == TRAIN, "run --tabcap=train --tabcap-update"
+
+
+def test_outcome() -> None:
+    label = {
+        "rows": [
+            {"name": "Alice", "team": "red"},
+            {"name": "Carol", "team": "green"},
+            {"name": "Dave", "team": "gray"},
+            {"name": "Eve", "team": None, "state": "respawning"},
+            {"name": None, "team": None, "npc": True},
+        ]
+    }
+    got = {"Alice": "red", "Carol": "blue", "Eve": "red", "Frank": "pink"}
+    assert outcome(label, got) == {
+        "correct": {"Alice": "red"},
+        "wrong": {"Carol": "got blue, label green"},
+        "unknown": {"Dave": "label gray"},
+        "unscored": {"Eve": "red"},
+        "extra": {"Frank": "pink"},
+    }
 
 
 def test_fixture(
     fixture_name: str, tabcap_dir: Path, request: pytest.FixtureRequest
 ) -> None:  # pragma: nocover
-    label, result = _run(fixture_name, tabcap_dir)
+    _, result = _run(fixture_name, tabcap_dir)
     if request.config.getoption("tabcap_update"):
-        _updates[fixture_name] = result
         return
-
-    raw = json.loads(EXPECTED.read_text()).get(fixture_name)
-    assert raw is not None, "no expected result: run with --tabcap-update"
-    expected = Result(**raw)
-    diff = [
-        f"{row['name']}: label {row['team']}, expected {e}, got {g}"
-        for row, e, g in zip(label["rows"], expected.rows, result.rows)
-        if e != g
-    ]
-    assert (diff, result.extra) == ([], expected.extra)
+    expected = json.loads(EXPECTED.read_text()).get(fixture_name)
+    assert result == expected
 
 
 @dataclass
@@ -133,18 +152,12 @@ class Score:
     unknown: int = 0
     extra: int = 0
 
-    def add(self, label: dict[str, Any], result: Result) -> None:
+    def add(self, result: Outcome) -> None:
         self.images += 1
-        self.extra += result.extra
-        for row, got in zip(label["rows"], result.rows):
-            if row.get("npc") or row.get("covered") or row["team"] is None:
-                continue
-            if got == ".":
-                self.unknown += 1
-            elif got == LETTER[row["team"]]:
-                self.correct += 1
-            else:
-                self.wrong += 1
+        self.correct += len(result["correct"])
+        self.wrong += len(result["wrong"])
+        self.unknown += len(result["unknown"])
+        self.extra += len(result["extra"])
 
     def line(self, group: str) -> str:
         rows = self.correct + self.wrong + self.unknown
@@ -175,7 +188,7 @@ def test_summary(
     for fixture in MANIFEST.select(selection):
         label, result = _run(fixture.name, tabcap_dir)
         for group in _groups(fixture, label):
-            scores.setdefault(group, Score()).add(label, result)
+            scores.setdefault(group, Score()).add(result)
 
     header = f"{'group':<34} {'img':>4} {'rows':>5} correct  wrong unknown extra"
     request.config.stash[REPORT_KEY] = [

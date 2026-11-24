@@ -1,818 +1,4099 @@
 {
  "replay-linux-forge-bombies-gs2-12rows-01": {
-  "rows": "bbgpprrw.syy",
-  "extra": 0
+  "correct": {
+   "8f32": "pink",
+   "Bachala3": "blue",
+   "DH4V": "yellow",
+   "L1u8k9a5": "red",
+   "Moritz1_2_3": "red",
+   "Moritz_12211": "green",
+   "Skydeaf": "yellow",
+   "Smufiq": "blue",
+   "WyxerIsWashed": "pink",
+   "__d4ni3l": "gray",
+   "jlynmc": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "jamie836": "label gray"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "replay-linux-forge-bombies-gs2-12rows-02": {
-  "rows": "bbgpprrw..yy",
-  "extra": 0
+  "correct": {
+   "8f32": "pink",
+   "Bachala3": "blue",
+   "DH4V": "yellow",
+   "L1u8k9a5": "red",
+   "Moritz1_2_3": "red",
+   "Moritz_12211": "green",
+   "Skydeaf": "yellow",
+   "Smufiq": "blue",
+   "WyxerIsWashed": "pink",
+   "jlynmc": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "__d4ni3l": "label gray",
+   "jamie836": "label gray"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "replay-linux-forge-bombies-gs2-13rows-01": {
-  "rows": "abbgpprrw.syy",
-  "extra": 0
+  "correct": {
+   "8f32": "pink",
+   "Bachala3": "blue",
+   "DH4V": "yellow",
+   "L1u8k9a5": "red",
+   "Moritz1_2_3": "red",
+   "Moritz_12211": "green",
+   "Skydeaf": "yellow",
+   "Smufiq": "blue",
+   "TutiRajuan": "aqua",
+   "WyxerIsWashed": "pink",
+   "__d4ni3l": "gray",
+   "jlynmc": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "jamie836": "label gray"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "replay-linux-forge-bombies-gs2-13rows-02": {
-  "rows": "abbgpprrw.syy",
-  "extra": 0
+  "correct": {
+   "8f32": "pink",
+   "Bachala3": "blue",
+   "DH4V": "yellow",
+   "L1u8k9a5": "red",
+   "Moritz1_2_3": "red",
+   "Moritz_12211": "green",
+   "Skydeaf": "yellow",
+   "Smufiq": "blue",
+   "TutiRajuan": "aqua",
+   "WyxerIsWashed": "pink",
+   "__d4ni3l": "gray",
+   "jlynmc": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "jamie836": "label gray"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "replay-linux-forge-bombies-gs2-13rows-03": {
-  "rows": "bbgpp.rww..yy",
-  "extra": 0
+  "correct": {
+   "8f32": "pink",
+   "Bachala3": "blue",
+   "DH4V": "yellow",
+   "Enigmariah": "white",
+   "Julian_NNH": "green",
+   "L1u8k9a5": "red",
+   "Skydeaf": "yellow",
+   "Smufiq": "blue",
+   "WyxerIsWashed": "pink",
+   "jlynmc": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "Moritz1_2_3": "label red",
+   "__d4ni3l": "label gray",
+   "jamie836": "label gray"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "replay-linux-forge-bombies-gs2-13rows-04": {
-  "rows": "bbgpprrww.syy",
-  "extra": 0
+  "correct": {
+   "8f32": "pink",
+   "Bachala3": "blue",
+   "DH4V": "yellow",
+   "Enigmariah": "white",
+   "Julian_NNH": "green",
+   "L1u8k9a5": "red",
+   "Moritz1_2_3": "red",
+   "Skydeaf": "yellow",
+   "Smufiq": "blue",
+   "WyxerIsWashed": "pink",
+   "__d4ni3l": "gray",
+   "jlynmc": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "jamie836": "label gray"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "replay-linux-forge-bombies-gs2-13rows-05": {
-  "rows": "bbgpprrwwssyy",
-  "extra": 0
+  "correct": {
+   "8f32": "pink",
+   "Bachala3": "blue",
+   "DH4V": "yellow",
+   "Enigmariah": "white",
+   "Julian_NNH": "green",
+   "L1u8k9a5": "red",
+   "Moritz1_2_3": "red",
+   "Skydeaf": "yellow",
+   "Smufiq": "blue",
+   "WyxerIsWashed": "pink",
+   "__d4ni3l": "gray",
+   "jamie836": "gray",
+   "jlynmc": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "replay-linux-forge-bombies-gs2-14rows-01": {
-  "rows": "bbggpprrww..yy",
-  "extra": 0
+  "correct": {
+   "8f32": "pink",
+   "Bachala3": "blue",
+   "DH4V": "yellow",
+   "Enigmariah": "white",
+   "Julian_NNH": "green",
+   "L1u8k9a5": "red",
+   "Moritz1_2_3": "red",
+   "Moritz_12211": "green",
+   "Skydeaf": "yellow",
+   "Smufiq": "blue",
+   "WyxerIsWashed": "pink",
+   "jlynmc": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "__d4ni3l": "label gray",
+   "jamie836": "label gray"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "replay-linux-forge-bombies-gs2-14rows-02": {
-  "rows": "bbggpprrww..yy",
-  "extra": 0
+  "correct": {
+   "8f32": "pink",
+   "Bachala3": "blue",
+   "DH4V": "yellow",
+   "Enigmariah": "white",
+   "Julian_NNH": "green",
+   "L1u8k9a5": "red",
+   "Moritz1_2_3": "red",
+   "Moritz_12211": "green",
+   "Skydeaf": "yellow",
+   "Smufiq": "blue",
+   "WyxerIsWashed": "pink",
+   "jlynmc": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "__d4ni3l": "label gray",
+   "jamie836": "label gray"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "replay-linux-forge-bombies-gs2-14rows-03": {
-  "rows": "bbggppr.wwssyy",
-  "extra": 0
+  "correct": {
+   "8f32": "pink",
+   "Bachala3": "blue",
+   "DH4V": "yellow",
+   "Enigmariah": "white",
+   "Julian_NNH": "green",
+   "Moritz1_2_3": "red",
+   "Moritz_12211": "green",
+   "Skydeaf": "yellow",
+   "Smufiq": "blue",
+   "WyxerIsWashed": "pink",
+   "__d4ni3l": "gray",
+   "jamie836": "gray",
+   "jlynmc": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "L1u8k9a5": "label red"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "replay-linux-forge-bombies-gs2-14rows-04": {
-  "rows": "bbggpprrww.syy",
-  "extra": 0
+  "correct": {
+   "8f32": "pink",
+   "Bachala3": "blue",
+   "DH4V": "yellow",
+   "Enigmariah": "white",
+   "Julian_NNH": "green",
+   "L1u8k9a5": "red",
+   "Moritz1_2_3": "red",
+   "Moritz_12211": "green",
+   "Skydeaf": "yellow",
+   "Smufiq": "blue",
+   "WyxerIsWashed": "pink",
+   "__d4ni3l": "gray",
+   "jlynmc": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "jamie836": "label gray"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "replay-linux-forge-bombies-gs2-14rows-05": {
-  "rows": "bbggpprrwwssyy",
-  "extra": 0
+  "correct": {
+   "8f32": "pink",
+   "Bachala3": "blue",
+   "DH4V": "yellow",
+   "Enigmariah": "white",
+   "Julian_NNH": "green",
+   "L1u8k9a5": "red",
+   "Moritz1_2_3": "red",
+   "Moritz_12211": "green",
+   "Skydeaf": "yellow",
+   "Smufiq": "blue",
+   "WyxerIsWashed": "pink",
+   "__d4ni3l": "gray",
+   "jamie836": "gray",
+   "jlynmc": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "replay-linux-forge-bombies-gs2-14rows-06": {
-  "rows": "bbggpprr.ws.yy",
-  "extra": 0
+  "correct": {
+   "8f32": "pink",
+   "Bachala3": "blue",
+   "DH4V": "yellow",
+   "Enigmariah": "white",
+   "Julian_NNH": "green",
+   "L1u8k9a5": "red",
+   "Moritz1_2_3": "red",
+   "Moritz_12211": "green",
+   "Skydeaf": "yellow",
+   "Smufiq": "blue",
+   "WyxerIsWashed": "pink",
+   "jamie836": "gray"
+  },
+  "wrong": {},
+  "unknown": {
+   "__d4ni3l": "label gray",
+   "jlynmc": "label white"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "replay-linux-forge-bombies-gs2-14rows-07": {
-  "rows": "bbggpprrww..yy",
-  "extra": 0
+  "correct": {
+   "8f32": "pink",
+   "Bachala3": "blue",
+   "DH4V": "yellow",
+   "Enigmariah": "white",
+   "Julian_NNH": "green",
+   "L1u8k9a5": "red",
+   "Moritz1_2_3": "red",
+   "Moritz_12211": "green",
+   "Skydeaf": "yellow",
+   "Smufiq": "blue",
+   "WyxerIsWashed": "pink",
+   "jlynmc": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "__d4ni3l": "label gray",
+   "jamie836": "label gray"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "replay-linux-forge-bombies-gs2-14rows-08": {
-  "rows": "bbggpprrwwssyy",
-  "extra": 0
+  "correct": {
+   "8f32": "pink",
+   "Bachala3": "blue",
+   "DH4V": "yellow",
+   "Enigmariah": "white",
+   "Julian_NNH": "green",
+   "L1u8k9a5": "red",
+   "Moritz1_2_3": "red",
+   "Moritz_12211": "green",
+   "Skydeaf": "yellow",
+   "Smufiq": "blue",
+   "WyxerIsWashed": "pink",
+   "__d4ni3l": "gray",
+   "jamie836": "gray",
+   "jlynmc": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "replay-linux-forge-bombies-gs2-15rows-01": {
-  "rows": "aabggpprrww..yy",
-  "extra": 0
+  "correct": {
+   "8f32": "pink",
+   "DH4V": "yellow",
+   "Enigmariah": "white",
+   "ItzProDevil": "aqua",
+   "Julian_NNH": "green",
+   "L1u8k9a5": "red",
+   "Moritz1_2_3": "red",
+   "Moritz_12211": "green",
+   "Skydeaf": "yellow",
+   "Smufiq": "blue",
+   "TutiRajuan": "aqua",
+   "WyxerIsWashed": "pink",
+   "jlynmc": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "__d4ni3l": "label gray",
+   "jamie836": "label gray"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "replay-linux-forge-bombies-gs2-15rows-02": {
-  "rows": ".bbggpprrwwssyy",
-  "extra": 0
+  "correct": {
+   "8f32": "pink",
+   "Bachala3": "blue",
+   "DH4V": "yellow",
+   "Enigmariah": "white",
+   "Julian_NNH": "green",
+   "L1u8k9a5": "red",
+   "Moritz1_2_3": "red",
+   "Moritz_12211": "green",
+   "Skydeaf": "yellow",
+   "Smufiq": "blue",
+   "WyxerIsWashed": "pink",
+   "__d4ni3l": "gray",
+   "jamie836": "gray",
+   "jlynmc": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "TutiRajuan": "label aqua"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "replay-linux-forge-bombies-gs2-16rows-01": {
-  "rows": "aabbggpprrww..yy",
-  "extra": 0
+  "correct": {
+   "8f32": "pink",
+   "Bachala3": "blue",
+   "DH4V": "yellow",
+   "Enigmariah": "white",
+   "ItzProDevil": "aqua",
+   "Julian_NNH": "green",
+   "L1u8k9a5": "red",
+   "Moritz1_2_3": "red",
+   "Moritz_12211": "green",
+   "Skydeaf": "yellow",
+   "Smufiq": "blue",
+   "TutiRajuan": "aqua",
+   "WyxerIsWashed": "pink",
+   "jlynmc": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "__d4ni3l": "label gray",
+   "jamie836": "label gray"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "replay-linux-forge-bombies-gs2-16rows-02": {
-  "rows": "aabbggpprrwwssyy",
-  "extra": 0
+  "correct": {
+   "8f32": "pink",
+   "Bachala3": "blue",
+   "DH4V": "yellow",
+   "Enigmariah": "white",
+   "ItzProDevil": "aqua",
+   "Julian_NNH": "green",
+   "L1u8k9a5": "red",
+   "Moritz1_2_3": "red",
+   "Moritz_12211": "green",
+   "Skydeaf": "yellow",
+   "Smufiq": "blue",
+   "TutiRajuan": "aqua",
+   "WyxerIsWashed": "pink",
+   "__d4ni3l": "gray",
+   "jamie836": "gray",
+   "jlynmc": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "replay-linux-forge-bombies-gs2-respawning-14rows-01": {
-  "rows": "bb.gpprrw...yy",
-  "extra": 0
+  "correct": {
+   "8f32": "pink",
+   "Bachala3": "blue",
+   "DH4V": "yellow",
+   "L1u8k9a5": "red",
+   "Moritz1_2_3": "red",
+   "Moritz_12211": "green",
+   "Skydeaf": "yellow",
+   "Smufiq": "blue",
+   "WyxerIsWashed": "pink",
+   "jlynmc": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "__d4ni3l": "label gray",
+   "jamie836": "label gray"
+  },
+  "unscored": {
+   "Enigmariah": null,
+   "Julian_NNH": null
+  },
+  "extra": {}
  },
  "replay-linux-forge-bombies-gs2-respawning-16rows-01": {
-  "rows": "aa.bggpprrww..yy",
-  "extra": 0
+  "correct": {
+   "8f32": "pink",
+   "DH4V": "yellow",
+   "Enigmariah": "white",
+   "ItzProDevil": "aqua",
+   "Julian_NNH": "green",
+   "L1u8k9a5": "red",
+   "Moritz1_2_3": "red",
+   "Moritz_12211": "green",
+   "Skydeaf": "yellow",
+   "Smufiq": "blue",
+   "TutiRajuan": "aqua",
+   "WyxerIsWashed": "pink",
+   "jlynmc": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "__d4ni3l": "label gray",
+   "jamie836": "label gray"
+  },
+  "unscored": {
+   "Bachala3": null
+  },
+  "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-16rows-01": {
-  "rows": "aabbssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "A_Human2": "green",
+   "AleksanderIII": "blue",
+   "Deutronic": "red",
+   "IcyBuilder07": "yellow",
+   "Kropper09": "pink",
+   "Mr_Kuba": "white",
+   "Olimp9": "gray",
+   "OneEmpTy": "aqua",
+   "Skydeaf": "gray",
+   "TYGEU34": "yellow",
+   "Tanuci": "pink",
+   "bobby15041998": "blue",
+   "darkalaya": "aqua",
+   "green_name": "red",
+   "niekon36": "white",
+   "xCarbink": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-16rows-02": {
-  "rows": "aabbssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "A_Human2": "green",
+   "AleksanderIII": "blue",
+   "Deutronic": "red",
+   "IcyBuilder07": "yellow",
+   "Kropper09": "pink",
+   "Mr_Kuba": "white",
+   "Olimp9": "gray",
+   "OneEmpTy": "aqua",
+   "Skydeaf": "gray",
+   "TYGEU34": "yellow",
+   "Tanuci": "pink",
+   "bobby15041998": "blue",
+   "darkalaya": "aqua",
+   "green_name": "red",
+   "niekon36": "white",
+   "xCarbink": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-6rows-01": {
-  "rows": "ssggrw",
-  "extra": 0
+  "correct": {
+   "2a2t": "green",
+   "2a2ts": "green",
+   "Kani2015": "gray",
+   "PHANT0M__": "white",
+   "Skydeaf": "red",
+   "hiding_norsu": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-7rows-01": {
-  "rows": "ssggrww",
-  "extra": 0
+  "correct": {
+   "2a2t": "green",
+   "2a2ts": "green",
+   "CottonSpore": "white",
+   "Kani2015": "gray",
+   "PHANT0M__": "white",
+   "Skydeaf": "red",
+   "hiding_norsu": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-covered-16rows-01": {
-  "rows": "................",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "A_Human2": null,
+   "AleksanderIII": null,
+   "Deutronic": null,
+   "IcyBuilder07": null,
+   "Kropper09": null,
+   "Mr_Kuba": null,
+   "Olimp9": null,
+   "OneEmpTy": null,
+   "Skydeaf": null,
+   "TYGEU34": null,
+   "Tanuci": null,
+   "bobby15041998": null,
+   "darkalaya": null,
+   "green_name": null,
+   "niekon36": null,
+   "xCarbink": null
+  },
+  "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-covered-16rows-02": {
-  "rows": "..........rrwwyy",
-  "extra": 0
+  "correct": {
+   "Deutronic": "red",
+   "IcyBuilder07": "yellow",
+   "Mr_Kuba": "white",
+   "TYGEU34": "yellow",
+   "green_name": "red",
+   "niekon36": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "A_Human2": null,
+   "AleksanderIII": null,
+   "Kropper09": null,
+   "Olimp9": null,
+   "OneEmpTy": null,
+   "Skydeaf": null,
+   "Tanuci": null,
+   "bobby15041998": null,
+   "darkalaya": null,
+   "xCarbink": null
+  },
+  "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-lobby-01": {
-  "rows": "",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-respawning-covered-13rows-01": {
-  "rows": ".aabbggppwwyy",
-  "extra": 0
+  "correct": {
+   "IcyBuilder07": "yellow",
+   "Kropper09": "pink",
+   "Mr_Kuba": "white",
+   "TYGEU34": "yellow",
+   "Tanuci": "pink",
+   "niekon36": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "A_Human2": "green",
+   "AleksanderIII": "blue",
+   "OneEmpTy": "aqua",
+   "Skydeaf": null,
+   "bobby15041998": "blue",
+   "darkalaya": "aqua",
+   "xCarbink": "green"
+  },
+  "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-respawning-covered-15rows-01": {
-  "rows": ".aabbggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "Deutronic": "red",
+   "IcyBuilder07": "yellow",
+   "Kropper09": "pink",
+   "Mr_Kuba": "white",
+   "TYGEU34": "yellow",
+   "green_name": "red",
+   "niekon36": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "A_Human2": "green",
+   "AleksanderIII": "blue",
+   "OneEmpTy": "aqua",
+   "Skydeaf": null,
+   "Tanuci": "pink",
+   "bobby15041998": "blue",
+   "darkalaya": "aqua",
+   "xCarbink": "green"
+  },
+  "extra": {}
  },
  "screenshot-win-forge-betterbedwars-gs2-respawning-covered-15rows-02": {
-  "rows": ".......pprrwwyy",
-  "extra": 0
+  "correct": {
+   "Deutronic": "red",
+   "IcyBuilder07": "yellow",
+   "Kropper09": "pink",
+   "Mr_Kuba": "white",
+   "TYGEU34": "yellow",
+   "green_name": "red",
+   "niekon36": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "A_Human2": null,
+   "AleksanderIII": null,
+   "OneEmpTy": null,
+   "Skydeaf": null,
+   "Tanuci": "pink",
+   "bobby15041998": null,
+   "darkalaya": null,
+   "xCarbink": null
+  },
+  "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-3rows-01": {
-  "rows": "rww",
-  "extra": 0
+  "correct": {
+   "CottonSpore": "white",
+   "PHANT0M__": "white",
+   "Skydeaf": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-game-start-14rows-01": {
-  "rows": ".abssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "Acxus_Play": "red",
+   "JUANPUNT": "green",
+   "JuanMC_55": "red",
+   "LOUIEOLAI13": "gray",
+   "Lalimvd2": "yellow",
+   "MapacheCraft": "blue",
+   "Rkzp201": "pink",
+   "SigTill": "gray",
+   "Skydeaf": "aqua",
+   "markoeboe": "green",
+   "nthrnx": "white",
+   "piercenpuffs": "white",
+   "rinnnei": "pink",
+   "velion_m": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "tizignbh": null
+  },
+  "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-game-start-15rows-01": {
-  "rows": ".abbssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "Acxus_Play": "red",
+   "JUANPUNT": "green",
+   "JuanMC_55": "red",
+   "LOUIEOLAI13": "gray",
+   "Lalimvd2": "yellow",
+   "MapacheCraft": "blue",
+   "Pgiol": "blue",
+   "Rkzp201": "pink",
+   "SigTill": "gray",
+   "Skydeaf": "aqua",
+   "markoeboe": "green",
+   "nthrnx": "white",
+   "piercenpuffs": "white",
+   "rinnnei": "pink",
+   "velion_m": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "tizignbh": null
+  },
+  "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-game-start-15rows-02": {
-  "rows": ".abbssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "Acxus_Play": "red",
+   "JUANPUNT": "green",
+   "JuanMC_55": "red",
+   "LOUIEOLAI13": "gray",
+   "Lalimvd2": "yellow",
+   "MapacheCraft": "blue",
+   "Pgiol": "blue",
+   "Rkzp201": "pink",
+   "SigTill": "gray",
+   "Skydeaf": "aqua",
+   "markoeboe": "green",
+   "nthrnx": "white",
+   "piercenpuffs": "white",
+   "rinnnei": "pink",
+   "velion_m": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "tizignbh": null
+  },
+  "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-game-start-respawning-15rows-01": {
-  "rows": ".ab.ssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "Acxus_Play": "red",
+   "JUANPUNT": "green",
+   "JuanMC_55": "red",
+   "LOUIEOLAI13": "gray",
+   "Lalimvd2": "yellow",
+   "MapacheCraft": "blue",
+   "Rkzp201": "pink",
+   "SigTill": "gray",
+   "Skydeaf": "aqua",
+   "markoeboe": "green",
+   "nthrnx": "white",
+   "piercenpuffs": "white",
+   "rinnnei": "pink",
+   "velion_m": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "Pgiol": null,
+   "tizignbh": null
+  },
+  "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-game-start-respawning-3rows-01": {
-  "rows": "....ww",
-  "extra": 0
+  "correct": {
+   "CottonSpore": "white",
+   "PHANT0M__": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "5h8685cf90": null,
+   "9893534ysj": null,
+   "Skydeaf": null,
+   "ic2n83w48f": null
+  },
+  "extra": {}
  },
  "screenshot-win-lunar-vanilla-gs2-lobby-01": {
-  "rows": "",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-14rows-01": {
-  "rows": "bbssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "ALBIcool5": "green",
+   "Avio23_09q2": "blue",
+   "BlackOscar": "blue",
+   "Butrus_21": "white",
+   "Cobria837": "white",
+   "DR_Hotdog_YT": "green",
+   "HakSal09": "gray",
+   "ItsNovaGG": "pink",
+   "Kaptein_Potet": "red",
+   "LowTide123": "yellow",
+   "P1nk1_jr": "red",
+   "Skydeaf": "pink",
+   "chrissypooh42o": "yellow",
+   "hajin_09": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-16rows-01": {
-  "rows": "bbbbggggrrrryyyy",
-  "extra": 0
+  "correct": {
+   "AJKD": "green",
+   "BastiGHG________": "blue",
+   "Blugree": "green",
+   "Crafty_Chief": "red",
+   "EliteVeil186789": "yellow",
+   "Giacuanno": "green",
+   "GirlyJoeyJedi": "red",
+   "Hxrse": "red",
+   "JonWeb7049": "yellow",
+   "RODARI11": "green",
+   "RenkieX": "yellow",
+   "Skydeaf": "blue",
+   "itzanne18": "red",
+   "karoLinsa": "blue",
+   "ma4dziulaa": "blue",
+   "red_Gamerr": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-16rows-02": {
-  "rows": "bbbbggggrrrryyyy",
-  "extra": 0
+  "correct": {
+   "AnanasTZ": "yellow",
+   "KekMum": "yellow",
+   "Killua_2307": "blue",
+   "Krzyniu": "blue",
+   "Matas1907": "blue",
+   "Matten_Jo": "red",
+   "Skycrafter_75": "yellow",
+   "Skydeaf": "red",
+   "WifiSurfre5188": "yellow",
+   "_BidLinkoln_": "green",
+   "captalm": "green",
+   "fxirs": "red",
+   "jimmy_twotimes": "green",
+   "octuplestorm": "blue",
+   "sc123262009": "green",
+   "xDTL8": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-16rows-03": {
-  "rows": "........p.......",
-  "extra": 0
+  "correct": {
+   "Skydeaf": "pink"
+  },
+  "wrong": {},
+  "unknown": {
+   "ALBIcool5": "label green",
+   "Avio23_09q2": "label blue",
+   "BlackOscar": "label blue",
+   "Butrus_21": "label white",
+   "Cobria837": "label white",
+   "DR_Hotdog_YT": "label green",
+   "HakSal09": "label gray",
+   "ItsNovaGG": "label pink",
+   "Kaptein_Potet": "label red",
+   "LowTide123": "label yellow",
+   "McLuhan2010": "label aqua",
+   "P1nk1_jr": "label red",
+   "chrissypooh42o": "label yellow",
+   "hajin_09": "label gray",
+   "whimsical_plague": "label aqua"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-16rows-04": {
-  "rows": "aabbssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "Bayez": "blue",
+   "DEW1R": "red",
+   "DroidRaptor": "white",
+   "FireballGT": "white",
+   "Himashm": "aqua",
+   "MBsT": "red",
+   "Oll8": "green",
+   "Sithichean": "gray",
+   "Skydeaf": "pink",
+   "V3OS": "yellow",
+   "VE07": "yellow",
+   "_Puzo_": "aqua",
+   "dorble": "green",
+   "ifyouseekharry": "gray",
+   "lixelv": "blue",
+   "winexp": "pink"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-16rows-05": {
-  "rows": "aabbssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "ALBIcool5": "green",
+   "Avio23_09q2": "blue",
+   "BlackOscar": "blue",
+   "Butrus_21": "white",
+   "Cobria837": "white",
+   "DR_Hotdog_YT": "green",
+   "HakSal09": "gray",
+   "ItsNovaGG": "pink",
+   "Kaptein_Potet": "red",
+   "LowTide123": "yellow",
+   "McLuhan2010": "aqua",
+   "P1nk1_jr": "red",
+   "Skydeaf": "pink",
+   "chrissypooh42o": "yellow",
+   "hajin_09": "gray",
+   "whimsical_plague": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-6rows-01": {
-  "rows": "ggppww",
-  "extra": 0
+  "correct": {
+   "ALBIcool5": "green",
+   "Butrus_21": "white",
+   "Cobria837": "white",
+   "DR_Hotdog_YT": "green",
+   "ItsNovaGG": "pink",
+   "Skydeaf": "pink"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-7rows-01": {
-  "rows": "ggpprww",
-  "extra": 0
+  "correct": {
+   "ALBIcool5": "green",
+   "Butrus_21": "white",
+   "Cobria837": "white",
+   "DR_Hotdog_YT": "green",
+   "ItsNovaGG": "pink",
+   "Kaptein_Potet": "red",
+   "Skydeaf": "pink"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-8rows-01": {
-  "rows": "brrrryyy",
-  "extra": 0
+  "correct": {
+   "KekMum": "yellow",
+   "Matten_Jo": "red",
+   "Skycrafter_75": "yellow",
+   "Skydeaf": "red",
+   "WifiSurfre5188": "yellow",
+   "fxirs": "red",
+   "octuplestorm": "blue",
+   "xDTL8": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-8rows-02": {
-  "rows": "ssggrrww",
-  "extra": 0
+  "correct": {
+   "C0ldSlime": "white",
+   "FakeeTom": "gray",
+   "R4yan_3xe": "red",
+   "Sithichean": "green",
+   "Skydeaf": "red",
+   "_isy__": "gray",
+   "ifyouseekharry": "green",
+   "theamazingwar": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-game-start-12rows-01": {
-  "rows": ".bbbbgggrryyy",
-  "extra": 0
+  "correct": {
+   "AJKD": "green",
+   "BastiGHG________": "blue",
+   "Blugree": "green",
+   "Crafty_Chief": "red",
+   "EliteVeil186789": "yellow",
+   "JonWeb7049": "yellow",
+   "RODARI11": "green",
+   "RenkieX": "yellow",
+   "Skydeaf": "blue",
+   "itzanne18": "red",
+   "karoLinsa": "blue",
+   "ma4dziulaa": "blue"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "6yaus6umh5": null
+  },
+  "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-game-start-16rows-01": {
-  "rows": ".bbbbggggrrrryyyy",
-  "extra": 0
+  "correct": {
+   "AJKD": "green",
+   "BastiGHG________": "blue",
+   "Blugree": "green",
+   "Crafty_Chief": "red",
+   "EliteVeil186789": "yellow",
+   "Giacuanno": "green",
+   "GirlyJoeyJedi": "red",
+   "Hxrse": "red",
+   "JonWeb7049": "yellow",
+   "RODARI11": "green",
+   "RenkieX": "yellow",
+   "Skydeaf": "blue",
+   "itzanne18": "red",
+   "karoLinsa": "blue",
+   "ma4dziulaa": "blue",
+   "red_Gamerr": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "6yaus6umh5": null
+  },
+  "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-game-start-16rows-02": {
-  "rows": "..bbbbggggrrrryyyy",
-  "extra": 0
+  "correct": {
+   "AnanasTZ": "yellow",
+   "KekMum": "yellow",
+   "Killua_2307": "blue",
+   "Krzyniu": "blue",
+   "Matas1907": "blue",
+   "Matten_Jo": "red",
+   "Skycrafter_75": "yellow",
+   "Skydeaf": "red",
+   "WifiSurfre5188": "yellow",
+   "_BidLinkoln_": "green",
+   "captalm": "green",
+   "fxirs": "red",
+   "jimmy_twotimes": "green",
+   "octuplestorm": "blue",
+   "sc123262009": "green",
+   "xDTL8": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "0rb3q66ug6": null,
+   "kz8icr0et5": null
+  },
+  "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-game-start-16rows-03": {
-  "rows": "...aabbssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "BigBlueMoney": "pink",
+   "BloodDeep": "aqua",
+   "C0ldSlime": "white",
+   "Cxnnamox": "yellow",
+   "FakeeTom": "gray",
+   "Latyatyutya": "blue",
+   "Popka_bolit": "aqua",
+   "R4yan_3xe": "red",
+   "Sithichean": "green",
+   "Skydeaf": "red",
+   "Super_Tobi_08": "blue",
+   "_isy__": "gray",
+   "cX_p1d": "yellow",
+   "ifyouseekharry": "green",
+   "pp11g": "pink",
+   "theamazingwar": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "0r401438vj": null,
+   "5pd258hg41": null,
+   "fpv9tgy75c": null
+  },
+  "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-game-start-7rows-01": {
-  "rows": "..absprwy",
-  "extra": 0
+  "correct": {
+   "BlossomLevi3": "gray",
+   "Jdo4": "yellow",
+   "Prestoony": "red",
+   "Skydeaf": "blue",
+   "odtv": "pink",
+   "phalanxtheboss": "aqua",
+   "skibiditoilet782": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "1nid4ls71a": null,
+   "5w56891qx5": null
+  },
+  "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-game-start-respawning-5rows-01": {
-  "rows": "....ggww",
-  "extra": 0
+  "correct": {
+   "C0ldSlime": "white",
+   "Sithichean": "green",
+   "ifyouseekharry": "green",
+   "theamazingwar": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "0r401438vj": null,
+   "5pd258hg41": null,
+   "Skydeaf": null,
+   "fpv9tgy75c": null
+  },
+  "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-game-start-two-columns-16rows-01": {
-  "rows": ".....aabbssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "Bayez": "blue",
+   "DEW1R": "red",
+   "DroidRaptor": "white",
+   "FireballGT": "white",
+   "Himashm": "aqua",
+   "MBsT": "red",
+   "Oll8": "green",
+   "Sithichean": "gray",
+   "Skydeaf": "pink",
+   "V3OS": "yellow",
+   "VE07": "yellow",
+   "_Puzo_": "aqua",
+   "dorble": "green",
+   "ifyouseekharry": "gray",
+   "lixelv": "blue",
+   "winexp": "pink"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "1t01a292eb": null,
+   "97m6o5iebz": null,
+   "ddwm6j3o8m": null,
+   "jijqc0ets5": null,
+   "n5nnp9ytdv": null
+  },
+  "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-lobby-01": {
-  "rows": "",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-linux-forge-bombies-gs2-lobby-02": {
-  "rows": "",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-linux-noclient-nofont-gsx-no-tab-01": {
-  "rows": "",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc02-gs1-15rows-01": {
-  "rows": "aabbssggprrwwyy",
-  "extra": 0
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc02-gs2-14rows-01": {
-  "rows": "aabbssgprrwwyy",
-  "extra": 0
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc02-gs2-15rows-01": {
-  "rows": "aabbssggprrwwyy",
-  "extra": 0
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc02-gs3-14rows-01": {
-  "rows": "aabbssggprrwyy",
-  "extra": 0
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc02-gs3-15rows-01": {
-  "rows": "aabbssggprrwwyy",
-  "extra": 0
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs1-11rows-01": {
-  "rows": "aabbssgg.yy",
-  "extra": 0
+  "correct": {
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue"
+  },
+  "wrong": {},
+  "unknown": {
+   "_tnm": "label white"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs1-respawning-12rows-01": {
-  "rows": "aabbssgg..yy",
-  "extra": 0
+  "correct": {
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue"
+  },
+  "wrong": {},
+  "unknown": {
+   "_tnm": "label white"
+  },
+  "unscored": {
+   "wearwolf": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs2-11rows-01": {
-  "rows": "aabbssggwwy",
-  "extra": 0
+  "correct": {
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs2-12rows-01": {
-  "rows": "aabb.sggwwyy",
-  "extra": 0
+  "correct": {
+   "DragonStar_11": "green",
+   "Istic_": "green",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "Hyrv": "label gray"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs2-respawning-12rows-01": {
-  "rows": "aabbssggw.yy",
-  "extra": 0
+  "correct": {
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "_tnm": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs3-10rows-01": {
-  "rows": "aab.sgwwyy",
-  "extra": 0
+  "correct": {
+   "Istic_": "green",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "Hyrv": "label gray"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs3-11rows-01": {
-  "rows": "aabbssgwwyy",
-  "extra": 0
+  "correct": {
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs3-respawning-11rows-01": {
-  "rows": "aa.bssgwwyy",
-  "extra": 0
+  "correct": {
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "siimajs": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs4-11rows-01": {
-  "rows": "aabssggwwyy",
-  "extra": 0
+  "correct": {
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": "white",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc03-gs4-12rows-01": {
-  "rows": "aabbs.ggwwyy",
-  "extra": 0
+  "correct": {
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "f1sak": "label gray"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc04-gs3-10rows-01": {
-  "rows": "aabbssgwwy",
-  "extra": 0
+  "correct": {
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc04-gs3-11rows-01": {
-  "rows": "aabbssgwwyy",
-  "extra": 0
+  "correct": {
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc05-gs2-15rows-01": {
-  "rows": "aabbssggpprwwyy",
-  "extra": 0
+  "correct": {
+   "BW231215": "aqua",
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "Tinoro16": "aqua",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc05-gs3-15rows-01": {
-  "rows": "aabbssggpprww..",
-  "extra": 0
+  "correct": {
+   "BW231215": "aqua",
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "Tinoro16": "aqua",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {
+   "Mega_Moon": "label yellow",
+   "Ryan_Pinguin": "label yellow"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc05-gs4-10rows-01": {
-  "rows": "aabbssww.y",
-  "extra": 0
+  "correct": {
+   "Hyrv": "gray",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "Tillmann_PvP": "label yellow"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc05-gs4-15rows-01": {
-  "rows": "aabbssggpprww..",
-  "extra": 0
+  "correct": {
+   "BW231215": "aqua",
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "Tinoro16": "aqua",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {
+   "Mega_Moon": "label yellow",
+   "Ryan_Pinguin": "label yellow"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc06-gs1-15rows-01": {
-  "rows": "aabbssggpprwwyy",
-  "extra": 0
+  "correct": {
+   "BW231215": "aqua",
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "Tinoro16": "aqua",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc06-gs3-13rows-01": {
-  "rows": "aabbssggrwwyy",
-  "extra": 0
+  "correct": {
+   "BW231215": "aqua",
+   "Cptobvious50": "green",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "Tinoro16": "aqua",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc06-gs3-14rows-01": {
-  "rows": "aabbssggprwwyy",
-  "extra": 0
+  "correct": {
+   "BW231215": "aqua",
+   "Cptobvious50": "green",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "Tinoro16": "aqua",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc06-gs4-12rows-01": {
-  "rows": "bbssggpprwyy",
-  "extra": 0
+  "correct": {
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "_wasper": "gray",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc06-gs4-13rows-01": {
-  "rows": "abbssggpprwyy",
-  "extra": 0
+  "correct": {
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "Tinoro16": "aqua",
+   "_wasper": "gray",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc07-gs1-12rows-01": {
-  "rows": "bbssggppr..y",
-  "extra": 0
+  "correct": {
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "_wasper": "gray",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {
+   "endofjourney": "label white",
+   "goku_mekory": "label white"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc07-gs2-12rows-01": {
-  "rows": "bbssggprwwyy",
-  "extra": 0
+  "correct": {
+   "Cptobvious50": "green",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc07-gs2-no-tab-01": {
-  "rows": "",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc07-gs3-12rows-01": {
-  "rows": "bbsggpprwwyy",
-  "extra": 0
+  "correct": {
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc08-gs3-spectator-12rows-01": {
-  "rows": "............",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "Cptobvious50": "label green",
+   "KajtoPL": "label pink",
+   "Mega_Moon": "label yellow",
+   "Moustibave": "label blue",
+   "Phantamvoid": "label green",
+   "Ryan_Pinguin": "label yellow",
+   "Sunny1912": "label blue",
+   "_wasper": "label gray",
+   "endofjourney": "label white",
+   "goku_mekory": "label white",
+   "ryanyz": "label gray"
+  },
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc08-gs3-spectator-13rows-01": {
-  "rows": ".............",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "Cptobvious50": "label green",
+   "KajtoPL": "label pink",
+   "Mega_Moon": "label yellow",
+   "Moustibave": "label blue",
+   "Orion233": "label pink",
+   "Phantamvoid": "label green",
+   "Ryan_Pinguin": "label yellow",
+   "Sunny1912": "label blue",
+   "_wasper": "label gray",
+   "endofjourney": "label white",
+   "goku_mekory": "label white",
+   "ryanyz": "label gray"
+  },
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc08-gs3-spectator-respawning-12rows-01": {
-  "rows": "............",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "KajtoPL": "label pink",
+   "Mega_Moon": "label yellow",
+   "Moustibave": "label blue",
+   "Phantamvoid": "label green",
+   "Ryan_Pinguin": "label yellow",
+   "Sunny1912": "label blue",
+   "_wasper": "label gray",
+   "endofjourney": "label white",
+   "goku_mekory": "label white",
+   "ryanyz": "label gray"
+  },
+  "unscored": {
+   "Cptobvious50": null,
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc08-gs4-spectator-13rows-01": {
-  "rows": ".............",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "Cptobvious50": "label green",
+   "KajtoPL": "label pink",
+   "Mega_Moon": "label yellow",
+   "Moustibave": "label blue",
+   "Orion233": "label pink",
+   "Phantamvoid": "label green",
+   "Ryan_Pinguin": "label yellow",
+   "Sunny1912": "label blue",
+   "_wasper": "label gray",
+   "endofjourney": "label white",
+   "goku_mekory": "label white",
+   "ryanyz": "label gray"
+  },
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs2-spectator-10rows-01": {
-  "rows": "......wwyy",
-  "extra": 0
+  "correct": {
+   "Mega_Moon": "yellow",
+   "Ryan_Pinguin": "yellow",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "Cptobvious50": "label green",
+   "Moustibave": "label blue",
+   "Orion233": "label pink",
+   "Phantamvoid": "label green",
+   "Sunny1912": "label blue"
+  },
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs2-spectator-8rows-01": {
-  "rows": ".....wy.",
-  "extra": 0
+  "correct": {
+   "Mega_Moon": "yellow",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "Cptobvious50": "label green",
+   "Orion233": "label pink",
+   "Phantamvoid": "label green",
+   "Ryan_Pinguin": "label yellow",
+   "Sunny1912": "label blue"
+  },
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs2-spectator-9rows-01": {
-  "rows": ".....wwy.",
-  "extra": 0
+  "correct": {
+   "Mega_Moon": "yellow",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "Cptobvious50": "label green",
+   "Orion233": "label pink",
+   "Phantamvoid": "label green",
+   "Ryan_Pinguin": "label yellow",
+   "Sunny1912": "label blue"
+  },
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs2-spectator-respawning-10rows-01": {
-  "rows": "......wwyy",
-  "extra": 0
+  "correct": {
+   "Mega_Moon": "yellow",
+   "Ryan_Pinguin": "yellow",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "Cptobvious50": "label green",
+   "Orion233": "label pink",
+   "Phantamvoid": "label green",
+   "Sunny1912": "label blue"
+  },
+  "unscored": {
+   "Moustibave": null,
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs2-spectator-respawning-10rows-02": {
-  "rows": ".......wy.",
-  "extra": 0
+  "correct": {
+   "Mega_Moon": "yellow",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "Cptobvious50": "label green",
+   "Orion233": "label pink",
+   "Phantamvoid": "label green",
+   "Ryan_Pinguin": "label yellow",
+   "Sunny1912": "label blue"
+  },
+  "unscored": {
+   "Moustibave": null,
+   "Skydeaf": null,
+   "endofjourney": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs3-spectator-10rows-01": {
-  "rows": "......wwyy",
-  "extra": 0
+  "correct": {
+   "Mega_Moon": "yellow",
+   "Ryan_Pinguin": "yellow",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "Cptobvious50": "label green",
+   "Moustibave": "label blue",
+   "Orion233": "label pink",
+   "Phantamvoid": "label green",
+   "Sunny1912": "label blue"
+  },
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs3-spectator-9rows-01": {
-  "rows": ".....wwyy",
-  "extra": 0
+  "correct": {
+   "Mega_Moon": "yellow",
+   "Ryan_Pinguin": "yellow",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "Cptobvious50": "label green",
+   "Moustibave": "label blue",
+   "Orion233": "label pink",
+   "Sunny1912": "label blue"
+  },
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc13-gs3-spectator-9rows-02": {
-  "rows": "......ww.",
-  "extra": 0
+  "correct": {
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "Cptobvious50": "label green",
+   "Moustibave": "label blue",
+   "Orion233": "label pink",
+   "Phantamvoid": "label green",
+   "Ryan_Pinguin": "label yellow",
+   "Sunny1912": "label blue"
+  },
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs1-9rows-01": {
-  "rows": ".....r...",
-  "extra": 0
+  "correct": {
+   "ehfi": "red"
+  },
+  "wrong": {},
+  "unknown": {
+   "DAVIDSEOJUN0613": "label yellow",
+   "JD9999": "label red",
+   "MyWayOrHighWay": "label green",
+   "SenkuroMashiro": "label green",
+   "Skydeaf": "label yellow",
+   "TheRealLoppa": "label green",
+   "wilhelmhaes": "label yellow",
+   "yCut": "label red"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs1-spectator-10rows-01": {
-  "rows": "..........",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "Cptobvious50": "label green",
+   "Mega_Moon": "label yellow",
+   "Moustibave": "label blue",
+   "Orion233": "label pink",
+   "Phantamvoid": "label green",
+   "Ryan_Pinguin": "label yellow",
+   "Sunny1912": "label blue",
+   "endofjourney": "label white",
+   "goku_mekory": "label white"
+  },
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs3-9rows-01": {
-  "rows": ".........",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "DAVIDSEOJUN0613": "label yellow",
+   "JD9999": "label red",
+   "MyWayOrHighWay": "label green",
+   "SenkuroMashiro": "label green",
+   "Skydeaf": "label yellow",
+   "TheRealLoppa": "label green",
+   "ehfi": "label red",
+   "wilhelmhaes": "label yellow",
+   "yCut": "label red"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs3-spectator-10rows-01": {
-  "rows": "..........",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "Cptobvious50": "label green",
+   "Mega_Moon": "label yellow",
+   "Moustibave": "label blue",
+   "Orion233": "label pink",
+   "Phantamvoid": "label green",
+   "Ryan_Pinguin": "label yellow",
+   "Sunny1912": "label blue",
+   "endofjourney": "label white",
+   "goku_mekory": "label white"
+  },
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs4-8rows-01": {
-  "rows": ".....r..",
-  "extra": 0
+  "correct": {
+   "ehfi": "red"
+  },
+  "wrong": {},
+  "unknown": {
+   "JD9999": "label red",
+   "MyWayOrHighWay": "label green",
+   "SenkuroMashiro": "label green",
+   "Skydeaf": "label yellow",
+   "TheRealLoppa": "label green",
+   "wilhelmhaes": "label yellow",
+   "yCut": "label red"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc15-gs4-spectator-10rows-01": {
-  "rows": "..........",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "Cptobvious50": "label green",
+   "Mega_Moon": "label yellow",
+   "Moustibave": "label blue",
+   "Orion233": "label pink",
+   "Phantamvoid": "label green",
+   "Ryan_Pinguin": "label yellow",
+   "Sunny1912": "label blue",
+   "endofjourney": "label white",
+   "goku_mekory": "label white"
+  },
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc16-gs1-spectator-8rows-01": {
-  "rows": ".bbpwwyy",
-  "extra": 0
+  "correct": {
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Ryan_Pinguin": "yellow",
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc16-gs4-spectator-7rows-01": {
-  "rows": ".bbpwyy",
-  "extra": 0
+  "correct": {
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Ryan_Pinguin": "yellow",
+   "Sunny1912": "blue",
+   "endofjourney": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc16-gs4-spectator-8rows-01": {
-  "rows": ".bbpwwyy",
-  "extra": 0
+  "correct": {
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Ryan_Pinguin": "yellow",
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc16-gs4-spectator-respawning-8rows-01": {
-  "rows": ".bbpw.yy",
-  "extra": 0
+  "correct": {
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Ryan_Pinguin": "yellow",
+   "Sunny1912": "blue",
+   "endofjourney": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "Skydeaf": null,
+   "goku_mekory": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs1-11rows-01": {
-  "rows": "ggggrrrryyy",
-  "extra": 0
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "xms_vax": "yellow",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs1-spectator-8rows-01": {
-  "rows": ".bbpwwyy",
-  "extra": 0
+  "correct": {
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Ryan_Pinguin": "yellow",
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-10rows-01": {
-  "rows": "ggggrrryyy",
-  "extra": 0
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "xms_vax": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-10rows-02": {
-  "rows": "gggrrryyyy",
-  "extra": 0
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "wilhelmhaes": "yellow",
+   "xms_vax": "yellow",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-11rows-01": {
-  "rows": "ggggrrrryyy",
-  "extra": 0
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "xms_vax": "yellow",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-11rows-02": {
-  "rows": "gggrrrryyyy",
-  "extra": 0
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "wilhelmhaes": "yellow",
+   "xms_vax": "yellow",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-8rows-01": {
-  "rows": "ggggrryy",
-  "extra": 0
+  "correct": {
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "xms_vax": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-9rows-01": {
-  "rows": "ggggrrryy",
-  "extra": 0
+  "correct": {
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "xms_vax": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-spectator-12rows-01": {
-  "rows": ".ggggrrrryyy",
-  "extra": 0
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "wilhelmhaes": "yellow",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "37iajacogh": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-spectator-8rows-01": {
-  "rows": ".bbpwwyy",
-  "extra": 0
+  "correct": {
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Ryan_Pinguin": "yellow",
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-spectator-respawning-10rows-01": {
-  "rows": ".ggggrrr.y",
-  "extra": 0
+  "correct": {
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "37iajacogh": null,
+   "DAVIDSEOJUN0613": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-spectator-respawning-12rows-01": {
-  "rows": ".ggggrrrryy.",
-  "extra": 0
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "37iajacogh": null,
+   "wilhelmhaes": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-tc17-gs2-spectator-respawning-9rows-01": {
-  "rows": ".ggggr.ry",
-  "extra": 0
+  "correct": {
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "37iajacogh": null,
+   "yCut": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-vanilla-gs1-10rows-01": {
-  "rows": "ggggrrryyy",
-  "extra": 0
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "xms_vax": "yellow",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-vanilla-gs1-11rows-01": {
-  "rows": "ggggrrrryyy",
-  "extra": 0
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "xms_vax": "yellow",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-vanilla-gs1-respawning-11rows-01": {
-  "rows": "ggggr.rryyy",
-  "extra": 0
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "xms_vax": "yellow",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "JD9999": null
+  },
+  "extra": {}
  },
  "tabcap-win-forge-optifine-vanilla-gs2-15rows-01": {
-  "rows": "aabbssggprrwwyy",
-  "extra": 0
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-forge-optifine-vanilla-gs2-game-start-15rows-01": {
-  "rows": "....aabbssggprrwwyy",
-  "extra": 0
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "2qfcv090m4": null,
+   "881x3550cf": null,
+   "a9xm7vjjn1": null,
+   "y5f627gyrs": null
+  },
+  "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-12rows-01": {
-  "rows": "bbgggrrryyyy",
-  "extra": 0
+  "correct": {
+   "Aodo0407": "blue",
+   "BlockyRoom27934": "yellow",
+   "DOMINATOR76": "yellow",
+   "FunPlayer2327": "blue",
+   "JozeGOOD": "yellow",
+   "Nickorange1": "green",
+   "Skydeaf": "green",
+   "SmallCrimson": "red",
+   "Thought24": "yellow",
+   "YeahSoGood": "red",
+   "lbrsn": "green",
+   "n9ice": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-12rows-02": {
-  "rows": "bgggrrrryyyy",
-  "extra": 0
+  "correct": {
+   "BlockyRoom27934": "yellow",
+   "ColdAndSonic": "red",
+   "DOMINATOR76": "yellow",
+   "FunPlayer2327": "blue",
+   "JozeGOOD": "yellow",
+   "Nickorange1": "green",
+   "Skydeaf": "green",
+   "SmallCrimson": "red",
+   "Thought24": "yellow",
+   "YeahSoGood": "red",
+   "lbrsn": "green",
+   "n9ice": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-12rows-03": {
-  "rows": "bgggrrrryyyy",
-  "extra": 0
+  "correct": {
+   "BlockyRoom27934": "yellow",
+   "ColdAndSonic": "red",
+   "DOMINATOR76": "yellow",
+   "FunPlayer2327": "blue",
+   "JozeGOOD": "yellow",
+   "Nickorange1": "green",
+   "Skydeaf": "green",
+   "SmallCrimson": "red",
+   "Thought24": "yellow",
+   "YeahSoGood": "red",
+   "lbrsn": "green",
+   "n9ice": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-16rows-01": {
-  "rows": "bbbbggggrrrryyyy",
-  "extra": 0
+  "correct": {
+   "Aodo0407": "blue",
+   "BlockyRoom27934": "yellow",
+   "ColdAndSonic": "red",
+   "DDay117": "blue",
+   "DOMINATOR76": "yellow",
+   "FunPlayer2327": "blue",
+   "JozeGOOD": "yellow",
+   "Nickorange1": "green",
+   "Skydeaf": "green",
+   "SmallCrimson": "red",
+   "Sorcier4Wish": "green",
+   "Thought24": "yellow",
+   "YeahSoGood": "red",
+   "cheeseball0407": "blue",
+   "lbrsn": "green",
+   "n9ice": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-16rows-02": {
-  "rows": "bbbbggggrrrryyyy",
-  "extra": 0
+  "correct": {
+   "Aodo0407": "blue",
+   "BlockyRoom27934": "yellow",
+   "ColdAndSonic": "red",
+   "DDay117": "blue",
+   "DOMINATOR76": "yellow",
+   "FunPlayer2327": "blue",
+   "JozeGOOD": "yellow",
+   "Nickorange1": "green",
+   "Skydeaf": "green",
+   "SmallCrimson": "red",
+   "Sorcier4Wish": "green",
+   "Thought24": "yellow",
+   "YeahSoGood": "red",
+   "cheeseball0407": "blue",
+   "lbrsn": "green",
+   "n9ice": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-game-start-16rows-01": {
-  "rows": "..bbbbggggrrrryyyy",
-  "extra": 0
+  "correct": {
+   "Aodo0407": "blue",
+   "BlockyRoom27934": "yellow",
+   "ColdAndSonic": "red",
+   "DDay117": "blue",
+   "DOMINATOR76": "yellow",
+   "FunPlayer2327": "blue",
+   "JozeGOOD": "yellow",
+   "Nickorange1": "green",
+   "Skydeaf": "green",
+   "SmallCrimson": "red",
+   "Sorcier4Wish": "green",
+   "Thought24": "yellow",
+   "YeahSoGood": "red",
+   "cheeseball0407": "blue",
+   "lbrsn": "green",
+   "n9ice": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "7a8jw19l83": null,
+   "8b8393v1a8": null
+  },
+  "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-game-start-respawning-6rows-01": {
-  "rows": "...brrrr",
-  "extra": 0
+  "correct": {
+   "ColdAndSonic": "red",
+   "FunPlayer2327": "blue",
+   "SmallCrimson": "red",
+   "YeahSoGood": "red",
+   "n9ice": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "7a8jw19l83": null,
+   "8b8393v1a8": null,
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-no-tab-01": {
-  "rows": "",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-no-tab-02": {
-  "rows": "",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-no-tab-03": {
-  "rows": "",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-respawning-10rows-01": {
-  "rows": "bgagrryyyy",
-  "extra": 1
+  "correct": {
+   "BlockyRoom27934": "yellow",
+   "DOMINATOR76": "yellow",
+   "FunPlayer2327": "blue",
+   "JozeGOOD": "yellow",
+   "Nickorange1": "green",
+   "SmallCrimson": "red",
+   "Thought24": "yellow",
+   "lbrsn": "green",
+   "n9ice": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "Skydeaf": "aqua"
+  },
+  "extra": {
+   "Sorcier4Wish": "pink"
+  }
  },
  "tabcap-win-lunar-vanilla-gs2-respawning-6rows-01": {
-  "rows": "b.grrr",
-  "extra": 0
+  "correct": {
+   "ColdAndSonic": "red",
+   "FunPlayer2327": "blue",
+   "Nickorange1": "green",
+   "SmallCrimson": "red",
+   "YeahSoGood": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-lunar-vanilla-gs2-respawning-covered-12rows-01": {
-  "rows": "............",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "BlockyRoom27934": null,
+   "ColdAndSonic": null,
+   "DOMINATOR76": null,
+   "FunPlayer2327": null,
+   "JozeGOOD": null,
+   "Nickorange1": null,
+   "Skydeaf": null,
+   "SmallCrimson": null,
+   "Thought24": null,
+   "YeahSoGood": null,
+   "lbrsn": null,
+   "n9ice": null
+  },
+  "extra": {}
  },
  "tabcap-win-vanilla-tc01-gs1-15rows-01": {
-  "rows": "aabssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "Not_Bacon80": "aqua",
+   "QSEG123": "pink",
+   "Seanlannx": "red",
+   "Skydeaf": "aqua",
+   "TzupuBusniucu": "gray",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "kuxazoo": "red",
+   "opdar": "white",
+   "parajo2": "yellow",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc01-gs1-16rows-01": {
-  "rows": "aabbssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "Not_Bacon80": "aqua",
+   "QSEG123": "pink",
+   "Seanlannx": "red",
+   "Skydeaf": "aqua",
+   "TheWo1fyRobin": "blue",
+   "TzupuBusniucu": "gray",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "kuxazoo": "red",
+   "opdar": "white",
+   "parajo2": "yellow",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc01-gs4-16rows-01": {
-  "rows": "aabbssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "Not_Bacon80": "aqua",
+   "QSEG123": "pink",
+   "Seanlannx": "red",
+   "Skydeaf": "aqua",
+   "TheWo1fyRobin": "blue",
+   "TzupuBusniucu": "gray",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "kuxazoo": "red",
+   "opdar": "white",
+   "parajo2": "yellow",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc02-gs2-15rows-01": {
-  "rows": "aabbssggpprrwwy",
-  "extra": 0
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "Not_Bacon80": "aqua",
+   "QSEG123": "pink",
+   "Seanlannx": "red",
+   "Skydeaf": "aqua",
+   "TheWo1fyRobin": "blue",
+   "TzupuBusniucu": "gray",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "kuxazoo": "red",
+   "opdar": "white",
+   "parajo2": "yellow",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc02-gs2-16rows-01": {
-  "rows": "aabbssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "Not_Bacon80": "aqua",
+   "QSEG123": "pink",
+   "Seanlannx": "red",
+   "Skydeaf": "aqua",
+   "TheWo1fyRobin": "blue",
+   "TzupuBusniucu": "gray",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "kuxazoo": "red",
+   "opdar": "white",
+   "parajo2": "yellow",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc02-gs3-13rows-01": {
-  "rows": "abbsggpprrwwy",
-  "extra": 0
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "QSEG123": "pink",
+   "Seanlannx": "red",
+   "Skydeaf": "aqua",
+   "TheWo1fyRobin": "blue",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "kuxazoo": "red",
+   "opdar": "white",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc02-gs3-14rows-01": {
-  "rows": "aabbsggpprrwwy",
-  "extra": 0
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "Not_Bacon80": "aqua",
+   "QSEG123": "pink",
+   "Seanlannx": "red",
+   "Skydeaf": "aqua",
+   "TheWo1fyRobin": "blue",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "kuxazoo": "red",
+   "opdar": "white",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc03-gs1-13rows-01": {
-  "rows": "aabssggppwwyy",
-  "extra": 0
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "Not_Bacon80": "aqua",
+   "QSEG123": "pink",
+   "Skydeaf": "aqua",
+   "TzupuBusniucu": "gray",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "opdar": "white",
+   "parajo2": "yellow",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc03-gs2-14rows-01": {
-  "rows": "aabbssggppwwyy",
-  "extra": 0
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "Not_Bacon80": "aqua",
+   "QSEG123": "pink",
+   "Skydeaf": "aqua",
+   "TheWo1fyRobin": "blue",
+   "TzupuBusniucu": "gray",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "opdar": "white",
+   "parajo2": "yellow",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs1-game-start-16rows-01": {
-  "rows": "....aabbssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "LeoEms1100": "green",
+   "LiankorIsBack": "red",
+   "LoveliuleiYa": "pink",
+   "SERGERT111": "green",
+   "Sara503": "yellow",
+   "Skydeaf": "gray",
+   "SquashKaskade46": "white",
+   "Stracke_ciresi": "pink",
+   "Streigant": "white",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "kailywithrd": "yellow",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "03c9hol326": null,
+   "69b3ag5o2z": null,
+   "6u3240a9r9": null,
+   "zB3yikfw0e": null
+  },
+  "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs1-spectator-8rows-01": {
-  "rows": "........",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "Corays": "label white",
+   "Himashm": "label green",
+   "QSEG123": "label pink",
+   "TheWo1fyRobin": "label blue",
+   "blutness": "label blue",
+   "opdar": "label white",
+   "wjddmsS2": "label pink"
+  },
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs1-spectator-9rows-01": {
-  "rows": ".........",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "Corays": "label white",
+   "Himashm": "label green",
+   "QSEG123": "label pink",
+   "TheWo1fyRobin": "label blue",
+   "blutness": "label blue",
+   "opdar": "label white",
+   "wjddmsS2": "label pink",
+   "yeloverye": "label green"
+  },
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs1-spectator-respawning-9rows-01": {
-  "rows": ".........",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "Corays": "label white",
+   "Himashm": "label green",
+   "QSEG123": "label pink",
+   "TheWo1fyRobin": "label blue",
+   "blutness": "label blue",
+   "opdar": "label white",
+   "wjddmsS2": "label pink"
+  },
+  "unscored": {
+   "Skydeaf": null,
+   "yeloverye": null
+  },
+  "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs2-16rows-01": {
-  "rows": "aabbssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "LeoEms1100": "green",
+   "LiankorIsBack": "red",
+   "LoveliuleiYa": "pink",
+   "SERGERT111": "green",
+   "Sara503": "yellow",
+   "Skydeaf": "gray",
+   "SquashKaskade46": "white",
+   "Stracke_ciresi": "pink",
+   "Streigant": "white",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "kailywithrd": "yellow",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs3-16rows-01": {
-  "rows": "aabbssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "LeoEms1100": "green",
+   "LiankorIsBack": "red",
+   "LoveliuleiYa": "pink",
+   "SERGERT111": "green",
+   "Sara503": "yellow",
+   "Skydeaf": "gray",
+   "SquashKaskade46": "white",
+   "Stracke_ciresi": "pink",
+   "Streigant": "white",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "kailywithrd": "yellow",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs4-14rows-01": {
-  "rows": "abb.sgpprrwwyy",
-  "extra": 0
+  "correct": {
+   "LeoEms1100": "green",
+   "LiankorIsBack": "red",
+   "LoveliuleiYa": "pink",
+   "Sara503": "yellow",
+   "SquashKaskade46": "white",
+   "Stracke_ciresi": "pink",
+   "Streigant": "white",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "kailywithrd": "yellow",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {
+   "Skydeaf": "label gray"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs4-15rows-01": {
-  "rows": "abbssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "LeoEms1100": "green",
+   "LiankorIsBack": "red",
+   "LoveliuleiYa": "pink",
+   "SERGERT111": "green",
+   "Sara503": "yellow",
+   "Skydeaf": "gray",
+   "SquashKaskade46": "white",
+   "Stracke_ciresi": "pink",
+   "Streigant": "white",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "kailywithrd": "yellow",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc05-gs3-12rows-01": {
-  "rows": "aabbssgpprrw",
-  "extra": 0
+  "correct": {
+   "LiankorIsBack": "red",
+   "LoveliuleiYa": "pink",
+   "SERGERT111": "green",
+   "Skydeaf": "gray",
+   "SquashKaskade46": "white",
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc05-gs3-16rows-01": {
-  "rows": "aabbssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "LeoEms1100": "green",
+   "LiankorIsBack": "red",
+   "LoveliuleiYa": "pink",
+   "SERGERT111": "green",
+   "Sara503": "yellow",
+   "Skydeaf": "gray",
+   "SquashKaskade46": "white",
+   "Stracke_ciresi": "pink",
+   "Streigant": "white",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "kailywithrd": "yellow",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc05-gs4-12rows-01": {
-  "rows": "aabbssgpprrw",
-  "extra": 0
+  "correct": {
+   "LiankorIsBack": "red",
+   "LoveliuleiYa": "pink",
+   "SERGERT111": "green",
+   "Skydeaf": "gray",
+   "SquashKaskade46": "white",
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc05-gs4-14rows-01": {
-  "rows": "aabbssgpprrwwy",
-  "extra": 0
+  "correct": {
+   "LeoEms1100": "green",
+   "LiankorIsBack": "red",
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "SquashKaskade46": "white",
+   "Stracke_ciresi": "pink",
+   "Streigant": "white",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "kailywithrd": "yellow",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc05-gs4-15rows-01": {
-  "rows": "aabbssgpprrwwyy",
-  "extra": 0
+  "correct": {
+   "LeoEms1100": "green",
+   "LiankorIsBack": "red",
+   "LoveliuleiYa": "pink",
+   "Sara503": "yellow",
+   "Skydeaf": "gray",
+   "SquashKaskade46": "white",
+   "Stracke_ciresi": "pink",
+   "Streigant": "white",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "kailywithrd": "yellow",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs1-8rows-01": {
-  "rows": "aabssppr",
-  "extra": 0
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs1-respawning-8rows-01": {
-  "rows": "........",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "LoveliuleiYa": "label pink",
+   "Stracke_ciresi": "label pink",
+   "Warush": "label red",
+   "commentory": "label blue",
+   "iKASD6": "label gray",
+   "lumiysa": "label aqua",
+   "zjee": "label aqua"
+  },
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs1-respawning-8rows-02": {
-  "rows": "abb.sppr",
-  "extra": 0
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs1-respawning-9rows-01": {
-  "rows": ".........",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "LoveliuleiYa": "label pink",
+   "Stracke_ciresi": "label pink",
+   "Warush": "label red",
+   "commentory": "label blue",
+   "iKASD6": "label gray",
+   "lumiysa": "label aqua",
+   "zjee": "label aqua"
+  },
+  "unscored": {
+   "Skydeaf": null,
+   "elYanB": null
+  },
+  "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs1-respawning-9rows-02": {
-  "rows": ".........",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "LoveliuleiYa": "label pink",
+   "Stracke_ciresi": "label pink",
+   "Warush": "label red",
+   "commentory": "label blue",
+   "elYanB": "label blue",
+   "iKASD6": "label gray",
+   "lumiysa": "label aqua",
+   "zjee": "label aqua"
+  },
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs1-respawning-9rows-03": {
-  "rows": "a.bb.sppr",
-  "extra": 0
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "Skydeaf": null,
+   "lumiysa": null
+  },
+  "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs2-9rows-01": {
-  "rows": "a.bbssppr",
-  "extra": 0
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {
+   "lumiysa": "label aqua"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs4-9rows-01": {
-  "rows": "aabbssppr",
-  "extra": 0
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc07-gs2-8rows-01": {
-  "rows": "abbs.ppr",
-  "extra": 0
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {
+   "iKASD6": "label gray"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc07-gs2-respawning-9rows-01": {
-  "rows": "a.bb..ppr",
-  "extra": 0
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {
+   "Skydeaf": "label gray",
+   "iKASD6": "label gray"
+  },
+  "unscored": {
+   "lumiysa": null
+  },
+  "extra": {}
  },
  "tabcap-win-vanilla-tc07-gs3-8rows-01": {
-  "rows": "aabb...p",
-  "extra": 0
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {
+   "Skydeaf": "label gray",
+   "Stracke_ciresi": "label pink",
+   "iKASD6": "label gray"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc07-gs4-8rows-01": {
-  "rows": "aabb...p",
-  "extra": 0
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {
+   "Skydeaf": "label gray",
+   "Stracke_ciresi": "label pink",
+   "iKASD6": "label gray"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs1-8rows-01": {
-  "rows": "........",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "LoveliuleiYa": "label pink",
+   "Skydeaf": "label gray",
+   "Stracke_ciresi": "label pink",
+   "commentory": "label blue",
+   "elYanB": "label blue",
+   "iKASD6": "label gray",
+   "lumiysa": "label aqua",
+   "zjee": "label aqua"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs1-no-tab-01": {
-  "rows": "",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs2-7rows-01": {
-  "rows": ".......",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "LoveliuleiYa": "label pink",
+   "Skydeaf": "label gray",
+   "Stracke_ciresi": "label pink",
+   "commentory": "label blue",
+   "elYanB": "label blue",
+   "iKASD6": "label gray",
+   "zjee": "label aqua"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs2-8rows-01": {
-  "rows": "........",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "LoveliuleiYa": "label pink",
+   "Skydeaf": "label gray",
+   "Stracke_ciresi": "label pink",
+   "commentory": "label blue",
+   "elYanB": "label blue",
+   "iKASD6": "label gray",
+   "lumiysa": "label aqua",
+   "zjee": "label aqua"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs3-7rows-01": {
-  "rows": ".......",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "LoveliuleiYa": "label pink",
+   "Skydeaf": "label gray",
+   "Stracke_ciresi": "label pink",
+   "commentory": "label blue",
+   "elYanB": "label blue",
+   "iKASD6": "label gray",
+   "lumiysa": "label aqua"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc08-gs3-respawning-7rows-01": {
-  "rows": ".......",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "LoveliuleiYa": "label pink",
+   "Skydeaf": "label gray",
+   "Stracke_ciresi": "label pink",
+   "commentory": "label blue",
+   "elYanB": "label blue",
+   "iKASD6": "label gray"
+  },
+  "unscored": {
+   "lumiysa": null
+  },
+  "extra": {}
  },
  "tabcap-win-vanilla-tc10-gs2-14rows-01": {
-  "rows": "aabbssggpprryy",
-  "extra": 0
+  "correct": {
+   "BoyTommy": "blue",
+   "Lordkatoa": "yellow",
+   "Skydeaf": "red",
+   "Terracore789": "pink",
+   "ToxicManoah": "gray",
+   "TzupuBusniucu": "aqua",
+   "XxxHRKxxX": "green",
+   "ZimbleMeister": "aqua",
+   "_t1mothy_": "pink",
+   "halicarny": "yellow",
+   "jiiiieun2": "blue",
+   "mr_syl": "gray",
+   "nobomarl1019": "green",
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc10-gs3-13rows-01": {
-  "rows": "aabbssg.prryy",
-  "extra": 0
+  "correct": {
+   "BoyTommy": "blue",
+   "Lordkatoa": "yellow",
+   "Skydeaf": "red",
+   "Terracore789": "pink",
+   "ToxicManoah": "gray",
+   "TzupuBusniucu": "aqua",
+   "XxxHRKxxX": "green",
+   "ZimbleMeister": "aqua",
+   "halicarny": "yellow",
+   "jiiiieun2": "blue",
+   "mr_syl": "gray",
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {
+   "_t1mothy_": "label pink"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc10-gs3-14rows-01": {
-  "rows": "aabbssggpprryy",
-  "extra": 0
+  "correct": {
+   "BoyTommy": "blue",
+   "Lordkatoa": "yellow",
+   "Skydeaf": "red",
+   "Terracore789": "pink",
+   "ToxicManoah": "gray",
+   "TzupuBusniucu": "aqua",
+   "XxxHRKxxX": "green",
+   "ZimbleMeister": "aqua",
+   "_t1mothy_": "pink",
+   "halicarny": "yellow",
+   "jiiiieun2": "blue",
+   "mr_syl": "gray",
+   "nobomarl1019": "green",
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc10-gs4-13rows-01": {
-  "rows": "aabb.sgpprryy",
-  "extra": 0
+  "correct": {
+   "BoyTommy": "blue",
+   "Lordkatoa": "yellow",
+   "Skydeaf": "red",
+   "Terracore789": "pink",
+   "TzupuBusniucu": "aqua",
+   "XxxHRKxxX": "green",
+   "ZimbleMeister": "aqua",
+   "_t1mothy_": "pink",
+   "halicarny": "yellow",
+   "jiiiieun2": "blue",
+   "mr_syl": "gray",
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {
+   "ToxicManoah": "label gray"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc10-gs4-respawning-14rows-01": {
-  "rows": "aabb.sg.pprryy",
-  "extra": 0
+  "correct": {
+   "BoyTommy": "blue",
+   "Lordkatoa": "yellow",
+   "Skydeaf": "red",
+   "Terracore789": "pink",
+   "TzupuBusniucu": "aqua",
+   "XxxHRKxxX": "green",
+   "ZimbleMeister": "aqua",
+   "_t1mothy_": "pink",
+   "halicarny": "yellow",
+   "jiiiieun2": "blue",
+   "mr_syl": "gray",
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {
+   "ToxicManoah": "label gray"
+  },
+  "unscored": {
+   "nobomarl1019": null
+  },
+  "extra": {}
  },
  "tabcap-win-vanilla-tc12-gs1-10rows-01": {
-  "rows": "..b..sggrr",
-  "extra": 0
+  "correct": {
+   "BoyTommy": "blue",
+   "Skydeaf": "red",
+   "XxxHRKxxX": "green",
+   "mr_syl": "gray",
+   "nobomarl1019": "green",
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {
+   "ToxicManoah": "label gray",
+   "TzupuBusniucu": "label aqua",
+   "ZimbleMeister": "label aqua",
+   "jiiiieun2": "label blue"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc12-gs3-10rows-01": {
-  "rows": "..b..sggrr",
-  "extra": 0
+  "correct": {
+   "BoyTommy": "blue",
+   "Skydeaf": "red",
+   "XxxHRKxxX": "green",
+   "mr_syl": "gray",
+   "nobomarl1019": "green",
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {
+   "ToxicManoah": "label gray",
+   "TzupuBusniucu": "label aqua",
+   "ZimbleMeister": "label aqua",
+   "jiiiieun2": "label blue"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc12-gs3-9rows-01": {
-  "rows": "..b..sgrr",
-  "extra": 0
+  "correct": {
+   "BoyTommy": "blue",
+   "Skydeaf": "red",
+   "mr_syl": "gray",
+   "nobomarl1019": "green",
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {
+   "ToxicManoah": "label gray",
+   "TzupuBusniucu": "label aqua",
+   "ZimbleMeister": "label aqua",
+   "jiiiieun2": "label blue"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc12-gs3-9rows-02": {
-  "rows": "..bbsggrr",
-  "extra": 0
+  "correct": {
+   "BoyTommy": "blue",
+   "Skydeaf": "red",
+   "XxxHRKxxX": "green",
+   "jiiiieun2": "blue",
+   "mr_syl": "gray",
+   "nobomarl1019": "green",
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {
+   "TzupuBusniucu": "label aqua",
+   "ZimbleMeister": "label aqua"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc12-gs3-respawning-10rows-01": {
-  "rows": "..b..s.grr",
-  "extra": 0
+  "correct": {
+   "BoyTommy": "blue",
+   "Skydeaf": "red",
+   "mr_syl": "gray",
+   "nobomarl1019": "green",
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {
+   "ToxicManoah": "label gray",
+   "TzupuBusniucu": "label aqua",
+   "ZimbleMeister": "label aqua",
+   "jiiiieun2": "label blue"
+  },
+  "unscored": {
+   "XxxHRKxxX": null
+  },
+  "extra": {}
  },
  "tabcap-win-vanilla-tc12-gs4-10rows-01": {
-  "rows": "..b..sggrr",
-  "extra": 0
+  "correct": {
+   "BoyTommy": "blue",
+   "Skydeaf": "red",
+   "XxxHRKxxX": "green",
+   "mr_syl": "gray",
+   "nobomarl1019": "green",
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {
+   "ToxicManoah": "label gray",
+   "TzupuBusniucu": "label aqua",
+   "ZimbleMeister": "label aqua",
+   "jiiiieun2": "label blue"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc16-gs2-16rows-01": {
-  "rows": ".......b........",
-  "extra": 0
+  "correct": {},
+  "wrong": {
+   "aufity": "got blue, label green"
+  },
+  "unknown": {
+   "Antlu236": "label yellow",
+   "E_C_M_U_Bro": "label green",
+   "Eli2017_A": "label white",
+   "FlicksyJet789": "label gray",
+   "Gurrase": "label aqua",
+   "Haminations2026": "label blue",
+   "Johannesjocke": "label aqua",
+   "Lappenoeffnerlol": "label gray",
+   "RoryGlec": "label yellow",
+   "Skydeaf": "label blue",
+   "Zipted": "label pink",
+   "_ItzRiptide": "label pink",
+   "headsnaps": "label red",
+   "plocque": "label white",
+   "plsfixlag": "label red"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc16-gs4-16rows-01": {
-  "rows": "................",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "Antlu236": "label yellow",
+   "E_C_M_U_Bro": "label green",
+   "Eli2017_A": "label white",
+   "FlicksyJet789": "label gray",
+   "Gurrase": "label aqua",
+   "Haminations2026": "label blue",
+   "Johannesjocke": "label aqua",
+   "Lappenoeffnerlol": "label gray",
+   "RoryGlec": "label yellow",
+   "Skydeaf": "label blue",
+   "Zipted": "label pink",
+   "_ItzRiptide": "label pink",
+   "aufity": "label green",
+   "headsnaps": "label red",
+   "plocque": "label white",
+   "plsfixlag": "label red"
+  },
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc17-gs1-15rows-01": {
-  "rows": "aabssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "Antlu236": "yellow",
+   "E_C_M_U_Bro": "green",
+   "Eli2017_A": "white",
+   "FlicksyJet789": "gray",
+   "Gurrase": "aqua",
+   "Johannesjocke": "aqua",
+   "Lappenoeffnerlol": "gray",
+   "RoryGlec": "yellow",
+   "Skydeaf": "blue",
+   "Zipted": "pink",
+   "_ItzRiptide": "pink",
+   "aufity": "green",
+   "headsnaps": "red",
+   "plocque": "white",
+   "plsfixlag": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-tc17-gs3-spectator-15rows-01": {
-  "rows": ".aassggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "Antlu236": "yellow",
+   "E_C_M_U_Bro": "green",
+   "Eli2017_A": "white",
+   "FlicksyJet789": "gray",
+   "Gurrase": "aqua",
+   "Johannesjocke": "aqua",
+   "Lappenoeffnerlol": "gray",
+   "RoryGlec": "yellow",
+   "Zipted": "pink",
+   "_ItzRiptide": "pink",
+   "aufity": "green",
+   "headsnaps": "red",
+   "plocque": "white",
+   "plsfixlag": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-vanilla-tc17-gs4-spectator-13rows-01": {
-  "rows": ".assggprrwwyy",
-  "extra": 0
+  "correct": {
+   "Antlu236": "yellow",
+   "E_C_M_U_Bro": "green",
+   "Eli2017_A": "white",
+   "FlicksyJet789": "gray",
+   "Johannesjocke": "aqua",
+   "Lappenoeffnerlol": "gray",
+   "RoryGlec": "yellow",
+   "_ItzRiptide": "pink",
+   "aufity": "green",
+   "headsnaps": "red",
+   "plocque": "white",
+   "plsfixlag": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-vanilla-tc17-gs4-spectator-14rows-01": {
-  "rows": ".assggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "Antlu236": "yellow",
+   "E_C_M_U_Bro": "green",
+   "Eli2017_A": "white",
+   "FlicksyJet789": "gray",
+   "Johannesjocke": "aqua",
+   "Lappenoeffnerlol": "gray",
+   "RoryGlec": "yellow",
+   "Zipted": "pink",
+   "_ItzRiptide": "pink",
+   "aufity": "green",
+   "headsnaps": "red",
+   "plocque": "white",
+   "plsfixlag": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-vanilla-tc17-gs4-spectator-14rows-02": {
-  "rows": ".aasggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "Antlu236": "yellow",
+   "E_C_M_U_Bro": "green",
+   "Eli2017_A": "white",
+   "Gurrase": "aqua",
+   "Johannesjocke": "aqua",
+   "Lappenoeffnerlol": "gray",
+   "RoryGlec": "yellow",
+   "Zipted": "pink",
+   "_ItzRiptide": "pink",
+   "aufity": "green",
+   "headsnaps": "red",
+   "plocque": "white",
+   "plsfixlag": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-vanilla-tc17-gs4-spectator-respawning-15rows-01": {
-  "rows": "..assggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "Antlu236": "yellow",
+   "E_C_M_U_Bro": "green",
+   "Eli2017_A": "white",
+   "FlicksyJet789": "gray",
+   "Johannesjocke": "aqua",
+   "Lappenoeffnerlol": "gray",
+   "RoryGlec": "yellow",
+   "Zipted": "pink",
+   "_ItzRiptide": "pink",
+   "aufity": "green",
+   "headsnaps": "red",
+   "plocque": "white",
+   "plsfixlag": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "Gurrase": null,
+   "Skydeaf": null
+  },
+  "extra": {}
  },
  "tabcap-win-vanilla-vanilla-gs1-16rows-01": {
-  "rows": "aabbssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "Not_Bacon80": "aqua",
+   "QSEG123": "pink",
+   "Seanlannx": "red",
+   "Skydeaf": "aqua",
+   "TheWo1fyRobin": "blue",
+   "TzupuBusniucu": "gray",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "kuxazoo": "red",
+   "opdar": "white",
+   "parajo2": "yellow",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-vanilla-gs1-game-start-16rows-01": {
-  "rows": "....aabbssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "Not_Bacon80": "aqua",
+   "QSEG123": "pink",
+   "Seanlannx": "red",
+   "Skydeaf": "aqua",
+   "TheWo1fyRobin": "blue",
+   "TzupuBusniucu": "gray",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "kuxazoo": "red",
+   "opdar": "white",
+   "parajo2": "yellow",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {
+   "231ahc0915": null,
+   "8cij93epte": null,
+   "d1v90c261v": null,
+   "muank4u9j3": null
+  },
+  "extra": {}
  },
  "tabcap-win-vanilla-vanilla-gs4-16rows-01": {
-  "rows": "aabbssggpprrwwyy",
-  "extra": 0
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "Not_Bacon80": "aqua",
+   "QSEG123": "pink",
+   "Seanlannx": "red",
+   "Skydeaf": "aqua",
+   "TheWo1fyRobin": "blue",
+   "TzupuBusniucu": "gray",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "kuxazoo": "red",
+   "opdar": "white",
+   "parajo2": "yellow",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  },
  "tabcap-win-vanilla-vanilla-gs4-no-tab-01": {
-  "rows": "",
-  "extra": 0
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "unscored": {},
+  "extra": {}
  }
 }
