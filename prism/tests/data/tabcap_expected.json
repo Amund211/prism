@@ -531,26 +531,25 @@
  },
  "tabcap-linux-forge-bombies-gs2-16rows-03": {
   "correct": {
-   "Skydeaf": "pink"
+   "ALBIcool5": "green",
+   "Avio23_09q2": "blue",
+   "BlackOscar": "blue",
+   "Butrus_21": "white",
+   "Cobria837": "white",
+   "DR_Hotdog_YT": "green",
+   "HakSal09": "gray",
+   "ItsNovaGG": "pink",
+   "Kaptein_Potet": "red",
+   "LowTide123": "yellow",
+   "McLuhan2010": "aqua",
+   "P1nk1_jr": "red",
+   "Skydeaf": "pink",
+   "chrissypooh42o": "yellow",
+   "hajin_09": "gray",
+   "whimsical_plague": "aqua"
   },
   "wrong": {},
-  "unknown": {
-   "ALBIcool5": "label green",
-   "Avio23_09q2": "label blue",
-   "BlackOscar": "label blue",
-   "Butrus_21": "label white",
-   "Cobria837": "label white",
-   "DR_Hotdog_YT": "label green",
-   "HakSal09": "label gray",
-   "ItsNovaGG": "label pink",
-   "Kaptein_Potet": "label red",
-   "LowTide123": "label yellow",
-   "McLuhan2010": "label aqua",
-   "P1nk1_jr": "label red",
-   "chrissypooh42o": "label yellow",
-   "hajin_09": "label gray",
-   "whimsical_plague": "label aqua"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -1443,6 +1442,7 @@
    "KajtoPL": "pink",
    "Mega_Moon": "yellow",
    "Moustibave": "blue",
+   "Phantamvoid": "green",
    "Ryan_Pinguin": "yellow",
    "Skydeaf": null,
    "Sunny1912": "blue",
@@ -1452,9 +1452,7 @@
    "ryanyz": "gray"
   },
   "wrong": {},
-  "unknown": {
-   "Phantamvoid": "label green"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -2955,54 +2953,51 @@
  },
  "tabcap-win-vanilla-tc04-gs1-spectator-8rows-01": {
   "correct": {
-   "Skydeaf": null
+   "Corays": "white",
+   "Himashm": "green",
+   "QSEG123": "pink",
+   "Skydeaf": null,
+   "TheWo1fyRobin": "blue",
+   "blutness": "blue",
+   "opdar": "white",
+   "wjddmsS2": "pink"
   },
   "wrong": {},
-  "unknown": {
-   "Corays": "label white",
-   "Himashm": "label green",
-   "QSEG123": "label pink",
-   "TheWo1fyRobin": "label blue",
-   "blutness": "label blue",
-   "opdar": "label white",
-   "wjddmsS2": "label pink"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs1-spectator-9rows-01": {
   "correct": {
-   "Skydeaf": null
+   "Corays": "white",
+   "Himashm": "green",
+   "QSEG123": "pink",
+   "Skydeaf": null,
+   "TheWo1fyRobin": "blue",
+   "blutness": "blue",
+   "opdar": "white",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
   },
   "wrong": {},
-  "unknown": {
-   "Corays": "label white",
-   "Himashm": "label green",
-   "QSEG123": "label pink",
-   "TheWo1fyRobin": "label blue",
-   "blutness": "label blue",
-   "opdar": "label white",
-   "wjddmsS2": "label pink",
-   "yeloverye": "label green"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc04-gs1-spectator-respawning-9rows-01": {
   "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "QSEG123": "pink",
    "Skydeaf": null,
+   "TheWo1fyRobin": "blue",
+   "blutness": "blue",
+   "opdar": "white",
+   "wjddmsS2": "pink",
    "yeloverye": null
   },
   "wrong": {},
-  "unknown": {
-   "Corays": "label white",
-   "Himashm": "label green",
-   "QSEG123": "label pink",
-   "TheWo1fyRobin": "label blue",
-   "blutness": "label blue",
-   "opdar": "label white",
-   "wjddmsS2": "label pink"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -3226,18 +3221,17 @@
  },
  "tabcap-win-vanilla-tc06-gs1-respawning-8rows-01": {
   "correct": {
-   "Skydeaf": null
+   "LoveliuleiYa": "pink",
+   "Skydeaf": null,
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "iKASD6": "gray",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
   },
   "wrong": {},
-  "unknown": {
-   "LoveliuleiYa": "label pink",
-   "Stracke_ciresi": "label pink",
-   "Warush": "label red",
-   "commentory": "label blue",
-   "iKASD6": "label gray",
-   "lumiysa": "label aqua",
-   "zjee": "label aqua"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -3259,37 +3253,35 @@
  },
  "tabcap-win-vanilla-tc06-gs1-respawning-9rows-01": {
   "correct": {
+   "LoveliuleiYa": "pink",
    "Skydeaf": null,
-   "elYanB": null
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": null,
+   "iKASD6": "gray",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
   },
   "wrong": {},
-  "unknown": {
-   "LoveliuleiYa": "label pink",
-   "Stracke_ciresi": "label pink",
-   "Warush": "label red",
-   "commentory": "label blue",
-   "iKASD6": "label gray",
-   "lumiysa": "label aqua",
-   "zjee": "label aqua"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
  "tabcap-win-vanilla-tc06-gs1-respawning-9rows-02": {
   "correct": {
-   "Skydeaf": null
+   "LoveliuleiYa": "pink",
+   "Skydeaf": null,
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
   },
   "wrong": {},
-  "unknown": {
-   "LoveliuleiYa": "label pink",
-   "Stracke_ciresi": "label pink",
-   "Warush": "label red",
-   "commentory": "label blue",
-   "elYanB": "label blue",
-   "iKASD6": "label gray",
-   "lumiysa": "label aqua",
-   "zjee": "label aqua"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },
@@ -3319,12 +3311,11 @@
    "commentory": "blue",
    "elYanB": "blue",
    "iKASD6": "gray",
+   "lumiysa": "aqua",
    "zjee": "aqua"
   },
   "wrong": {},
-  "unknown": {
-   "lumiysa": "label aqua"
-  },
+  "unknown": {},
   "npc": {},
   "extra": {}
  },

@@ -1,4 +1,4 @@
-"""Snap reads to the known names: {known name: team}.
+"""Snap read names to the known names (one-to-one).
 
 Port of lab tbench.snap (cost = i4_rec.cost, assignment = common.assign).
 Own Levenshtein (no rapidfuzz): names are <= 16 chars, so the plain O(n m)
@@ -12,7 +12,6 @@ from scipy.optimize import linear_sum_assignment  # type: ignore[import-untyped]
 
 from prism.overlay.tabcap.reader.front import clean
 from prism.overlay.tabcap.reader.front.guiscale import Array
-from prism.overlay.tabcap.screenshot import Team
 
 MAX_COST = 0.34
 MARGIN = 0.08
@@ -57,12 +56,9 @@ def assign(c: Array, max_cost: float, margin: float) -> list[tuple[int, int]]:
     return out
 
 
-def snap(
-    reads: Sequence[tuple[str, Team | None]], known: Sequence[str]
-) -> dict[str, Team]:
-    """{known name: team} from the reads that have a team"""
-    teamed = [(n, t) for n, t in reads if t]
-    if not teamed or not known:
-        return {}
-    c = np.array([[cost(n, k) for k in known] for n, _ in teamed])
-    return {known[j]: teamed[i][1] for i, j in assign(c, MAX_COST, MARGIN)}
+def snap(names: Sequence[str], known: Sequence[str]) -> list[tuple[int, int]]:
+    """(index in names, index in known) for each read name that snaps"""
+    if not names or not known:
+        return []
+    c = np.array([[cost(n, k) for k in known] for n in names])
+    return assign(c, MAX_COST, MARGIN)

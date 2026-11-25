@@ -48,8 +48,9 @@ def has_health(text: str) -> bool:
     )
 
 
-def policy_b4(rows: Sequence[RowRead]) -> list[tuple[str, Team | None]]:
-    """(name, team) per valid name, first read wins; [] if the gate fails"""
+def candidates(rows: Sequence[RowRead]) -> list[tuple[int, Team | None, str]]:
+    """(row index, team, name) per row that is not an NPC; [] if the gate
+    fails. Names are not checked for validity, and may repeat."""
     split = [(r, *split_row(r.text)) for r in rows]
     gate = sum(1 for r, t, n in split if t and valid(n) and has_health(r.text))
     if gate < GATE:
@@ -59,10 +60,17 @@ def policy_b4(rows: Sequence[RowRead]) -> list[tuple[str, Team | None]]:
     for r, t, _ in split:
         if t:
             top[r.col] = min(top.get(r.col, 1 << 30), r.y)
+    return [
+        (i, team, n)
+        for i, (r, team, n) in enumerate(split)
+        if not (team is None and r.y < top.get(r.col, 0) and NPC_RE.match(n))
+    ]
+
+
+def policy_b4(rows: Sequence[RowRead]) -> list[tuple[str, Team | None]]:
+    """(name, team) per valid name, first read wins; [] if the gate fails"""
     out: dict[str, Team | None] = {}
-    for r, team, n in split:
-        if team is None and r.y < top.get(r.col, 0) and NPC_RE.match(n):
-            continue
+    for _, team, n in candidates(rows):
         if valid(n):
             out.setdefault(n, team)
     return list(out.items())

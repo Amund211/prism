@@ -1,6 +1,6 @@
 """Unit tests of the tab-list reader after the front step: decode, model,
-policy B4, snap. The equality with the lab reader on the train fixtures was
-checked once by hand (T5 on the tabcap step-1 board)."""
+policy B4, snap, U6 union. The equality with the lab reader on the train
+fixtures was checked once by hand (T5 on the tabcap step-1 board)."""
 
 import hashlib
 import importlib.util
@@ -17,9 +17,11 @@ from prism.overlay.tabcap.reader.decode import (
     KIND_TOKEN,
     TEAM_TOKEN,
     decode,
+    posterior,
 )
 from prism.overlay.tabcap.reader.policy import (
     RowRead,
+    candidates,
     has_health,
     policy_b4,
     split_row,
@@ -31,7 +33,6 @@ from prism.overlay.tabcap.reader.snap import (
     normalized,
     snap,
 )
-from prism.overlay.tabcap.screenshot import Team
 
 
 def one_hot(text: str, blank_at: tuple[int, ...] = ()) -> np.ndarray:
@@ -40,8 +41,11 @@ def one_hot(text: str, blank_at: tuple[int, ...] = ()) -> np.ndarray:
     for t in blank_at:
         ids.insert(t, 0)
     lg = np.zeros((len(CHARS_K) + 1, len(ids)), np.float32)
-    lg[ids, np.arange(len(ids))] = 5.0
+    lg[ids, np.arange(len(ids))] = PEAK
     return lg
+
+
+PEAK = 20.0  # peaky, as the model: other chars fall under the beam prune
 
 
 def test_charset() -> None:
@@ -71,6 +75,22 @@ def test_charset() -> None:
 )
 def test_decode(text: str, blank_at: tuple[int, ...], expected: str) -> None:
     assert decode(one_hot(text, blank_at)) == expected
+
+
+def unsure(text: str, step: int, other: str) -> np.ndarray:
+    """one_hot(text), but at one step the model is split between two chars"""
+    lg = one_hot(text)
+    lg[CHARS_K.index(other) + 1, step] = PEAK
+    return lg
+
+
+def test_posterior() -> None:
+    assert posterior(one_hot("① Player1 20")) > 0.99
+    # Two reads of the same probability
+    assert posterior(unsure("① Player1 20", 3, "z")) == pytest.approx(0.5, abs=0.01)
+    assert posterior(one_hot("")) > 0.99
+    # Flat logits: every read is as likely, paths merge and chars repeat
+    assert 0 < posterior(np.zeros((len(CHARS_K) + 1, 3), np.float32)) < 0.2
 
 
 def test_sidecar() -> None:
@@ -150,6 +170,23 @@ def test_policy_b4() -> None:
     ]
 
 
+def test_candidates() -> None:
+    rows = [
+        RowRead("abcdefgh1", 0, 10),  # NPC: dropped
+        RowRead("① Player1 20", 0, 30),
+        RowRead("① ab 20", 0, 40),  # invalid name: kept
+        RowRead("② Player2 7", 0, 50),
+        RowRead("③ Player1 12", 0, 60),  # dup: kept
+    ]
+    assert candidates(rows) == [
+        (1, "red", "Player1"),
+        (2, "red", "ab"),
+        (3, "blue", "Player2"),
+        (4, "green", "Player1"),
+    ]
+    assert candidates(rows[:3]) == []  # gate: 1 good team row
+
+
 def test_policy_b4_gate() -> None:
     rows = [
         RowRead("① Player1 20", 0, 30),
@@ -200,28 +237,31 @@ def test_assign() -> None:
 
 
 def test_snap() -> None:
-    reads: list[tuple[str, Team | None]] = [
-        ("Alpha_1", "red"),
-        ("Brav_22", "blue"),
-        ("Charlie", None),
-    ]
+    names = ["Alpha_1", "Brav_22", "zzzzzz"]
     known = ["Bravo_22", "Alpha_1", "Charlie"]
-    # Charlie has no team: not snapped
-    assert snap(reads, known) == {"Alpha_1": "red", "Bravo_22": "blue"}
-    assert snap(reads, []) == {}
-    assert snap(reads[2:], known) == {}
+    assert snap(names, known) == [(0, 1), (1, 0)]
+    assert snap(names, []) == []
+    assert snap([], known) == []
 
 
 def fake_front(
-    monkeypatch: pytest.MonkeyPatch, texts: list[str], tab: bool = True
+    monkeypatch: pytest.MonkeyPatch,
+    texts: list[str | np.ndarray],
+    tab: bool = True,
 ) -> None:
-    rows = [SimpleNamespace(y=4 + 12 * i, x0=2, x1=30, col=0) for i in range(3)]
+    """Rows whose model logits read the texts (or are the given logits)"""
+    rows = [
+        SimpleNamespace(y=4 + 12 * i, x0=2, x1=30, col=0) for i in range(len(texts))
+    ]
     regions = [SimpleNamespace(prow=SimpleNamespace(row=r)) for r in rows]
     tab_ = SimpleNamespace(k=1) if tab else None
     monkeypatch.setattr(read, "front", lambda rgb: ("grid", tab_, []))
     monkeypatch.setattr(read, "regions_of", lambda rgb, prows, k: regions)
-    reads = iter(texts)
-    monkeypatch.setattr(model, "read", lambda crop: next(reads))
+    monkeypatch.setattr(read, "norm_crop", lambda rgb, y, x0, x1, k: y)
+    lg = {
+        r.y: t if isinstance(t, np.ndarray) else one_hot(t) for r, t in zip(rows, texts)
+    }
+    monkeypatch.setattr(model, "logits", lambda crop: lg[crop])
 
 
 def test_read_tab(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -241,12 +281,52 @@ def test_read_tab_no_tab(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_read_teams(monkeypatch: pytest.MonkeyPatch) -> None:
     image = Image.new("RGB", (40, 48))
-    assert read.read_teams(image, []) == {}
-    fake_front(monkeypatch, ["① Alpha_1 20", "② Bravo_22 20", "② Charli 9"])
+    fake_front(
+        monkeypatch,
+        [
+            "① Alpha_1 20",
+            "② Bravo_23 20",
+            "② Charli 9",  # snaps to Charlie
+            "③ Delta_4 20",  # not known, sure read: added
+            unsure("④ Echo_56 20", 3, "z"),  # not known, unsure: dropped
+            "④ ab 20",  # not known, invalid name: dropped
+            "⑨ Fox_678 20",  # no team: dropped
+        ],
+    )
+    # (one_hot texts have no repeated chars: CTC merges them)
     assert read.read_teams(image, ["Charlie", "Alpha_1", "Alpha_1"]) == {
         "Alpha_1": "red",
         "Charlie": "blue",
+        "Bravo_23": "blue",
+        "Delta_4": "green",
     }
+
+
+def test_read_teams_no_known(monkeypatch: pytest.MonkeyPatch) -> None:
+    image = Image.new("RGB", (40, 48))
+    fake_front(monkeypatch, ["① Alpha_1 20", "② Bravo_23 20", "② Charli 9"])
+    assert read.read_teams(image, []) == {
+        "Alpha_1": "red",
+        "Bravo_23": "blue",
+        "Charli": "blue",
+    }
+
+
+def test_read_teams_snap_first(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A known name takes its read, so the raw read is not added again"""
+    image = Image.new("RGB", (40, 48))
+    fake_front(monkeypatch, ["① Alpha_1 20", "② Bravo_23 20", "② Charli 9"])
+    assert read.read_teams(image, ["Charlie"]) == {
+        "Charlie": "blue",
+        "Alpha_1": "red",
+        "Bravo_23": "blue",
+    }
+
+
+def test_read_teams_gate(monkeypatch: pytest.MonkeyPatch) -> None:
+    image = Image.new("RGB", (40, 48))
+    fake_front(monkeypatch, ["① Alpha_1 20", "② Bravo_23"])
+    assert read.read_teams(image, ["Alpha_1"]) == {}
 
 
 def test_read_tab_real_front() -> None:
