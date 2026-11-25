@@ -27,6 +27,7 @@ class Shadow:
         self.v: Array = cv2.max(cv2.max(r, g), b)
         self.hi: Array = cv2.LUT(self.v, _HI)
         self.lo: Array = cv2.LUT(self.v, _LO)
+        self._masks: dict[int, Array] = {}
 
     def coarse(self, k: int) -> Array:
         """uint8 0/255: max-channel shadow test at (+k, +k)"""
@@ -41,8 +42,15 @@ class Shadow:
         return m
 
     def mask(self, k: int, coarse: Array | None = None) -> Array:
-        """bool: the exact per-channel shadow test"""
-        c = self.coarse(k) if coarse is None else coarse
+        """bool: the exact per-channel shadow test. Cached per k (the finders
+        share one Shadow); do not change the returned array."""
+        if coarse is None:
+            if k not in self._masks:
+                self._masks[k] = self._mask(k, self.coarse(k))
+            return self._masks[k]
+        return self._mask(k, coarse)
+
+    def _mask(self, k: int, c: Array) -> Array:
         nz = cv2.findNonZero(c)
         if nz is None:
             return np.zeros(c.shape, bool)

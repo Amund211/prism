@@ -95,16 +95,17 @@ def grid_parse(
     g: grid.Grid | None = None,
     maskfn: MaskFn = bg_mask,
     icon: bool = False,
+    sh: Shadow | None = None,
 ) -> tuple[grid.Grid | None, Tab | None, list[PRow]]:
     """g: a Grid from another finder. maskfn: letter mask (bg_mask needs row
     cells; ping rows use lunar_mask). icon: when the slot fails, try again
-    after a client icon (8k + 1k gap; Lunar moon)"""
+    after a client icon (8k + 1k gap; Lunar moon). sh: shared shadow masks"""
     if g is None:
         g = grid.find_grid(rgb)
     if g is None:
         return None, None, []
     k = g.k
-    mask = Shadow(rgb).mask(k)
+    mask = (Shadow(rgb) if sh is None else sh).mask(k)
     rows = []
     for col, (x0, x1) in enumerate(g.cols):
         lo, hi = x0 + 9 * k, x1 - 11 * k

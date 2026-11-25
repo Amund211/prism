@@ -40,11 +40,16 @@ def _comps(mask: Array, k: int) -> Array:
     """Word boxes [x, y, w, h]. Vertical closing < k: fills thin-stroke
     breaks (HD fonts) but not the >= k gap between rows."""
     m = mask.astype(np.uint8)
+    # Crop to the mask pixels. A margin of one kernel size covers the reach
+    # of dilate + erode, so the boxes are the same as on the full image.
+    x, y, w, h = cv2.boundingRect(m)
+    x0, y0 = max(0, x - (3 * k + 1)), max(0, y - k)
+    m = m[y0 : y + h + k, x0 : x + w + 3 * k + 1]
     out = []
     for kh in (1, k) if k > 2 else (1,):
         c = cv2.morphologyEx(m, cv2.MORPH_CLOSE, np.ones((kh, 3 * k + 1), np.uint8))
         _, _, stats, _ = cv2.connectedComponentsWithStats(c, connectivity=8)
-        out.append(stats[1:, :4])
+        out.append(stats[1:, :4] + np.array([x0, y0, 0, 0], stats.dtype))
     return np.unique(np.concatenate(out), axis=0)
 
 
@@ -185,8 +190,11 @@ def _extent(
     return _grow(_in_rows(boxes, ch.tops, k), lo, hi, 2 * k)
 
 
-def find_rows_k(mask: Array, k: int, min_h: int = 6) -> tuple[list[Row], int]:
-    boxes = _comps(mask, k)
+def find_rows_k(
+    mask: Array, k: int, min_h: int = 6, boxes: Array | None = None
+) -> tuple[list[Row], int]:
+    """boxes: _comps(mask, k), when the caller has it"""
+    boxes = _comps(mask, k) if boxes is None else boxes
     chains = sorted(_ladders(boxes, k, min_h), key=lambda c: -c.real)
     if not chains or chains[0].real < 2:
         return [], 0
@@ -221,27 +229,46 @@ def find_rows_k(mask: Array, k: int, min_h: int = 6) -> tuple[list[Row], int]:
     return rows, a.real
 
 
-def find_tab(rgb: Array, ks: range | None = None) -> Tab | None:
+def find_tab(
+    rgb: Array, ks: range | None = None, sh: Shadow | None = None
+) -> Tab | None:
     # Text at scale s also passes the shadow test at k < s, and its parts can
     # form a false ladder there. So take the largest k with a good ladder.
-    sh = Shadow(rgb)
+    sh = Shadow(rgb) if sh is None else sh
     ks = gui_ks(rgb) if ks is None else ks
-    masks = {k: sh.mask(k) for k in ks}
-    best = _pick(masks, ks, min_h=6)
+    boxes: dict[int, Array] = {}
+    best = _pick(sh, ks, 6, boxes, stop=STOP)
     if best is None or best.real < 5:
         # anti-aliased fonts: few glyphs pass the shadow test over 6k
-        low = _pick(masks, ks, min_h=5)
+        low = _pick(sh, ks, 5, boxes)
         if low is not None and (best is None or low.real > best.real):
             best = low
     return best
 
 
-def _pick(masks: dict[int, Array], ks: range, min_h: int) -> Tab | None:
+# Speed: from the largest k down, stop once a ladder has this many rows. A
+# smaller k only wins with a ladder of > 2x the rows (rule in _pick).
+STOP = 5
+
+
+def _pick(
+    sh: Shadow,
+    ks: range,
+    min_h: int,
+    boxes: dict[int, Array],
+    stop: int | None = None,
+) -> Tab | None:
+    """boxes: _comps per k, filled here and shared by the min_h passes"""
     tabs = []
-    for k in ks:
-        rows, real = find_rows_k(masks[k], k, min_h)
+    for k in reversed(ks):
+        mask = sh.mask(k)
+        if k not in boxes:
+            boxes[k] = _comps(mask, k)
+        rows, real = find_rows_k(mask, k, min_h, boxes[k])
         if real >= 2:
-            tabs.append(Tab(k, rows, masks[k], real))
+            tabs.append(Tab(k, rows, mask, real))
+            if stop is not None and real >= stop:
+                break
     if not tabs:
         return None
     top = max(t.real for t in tabs)
