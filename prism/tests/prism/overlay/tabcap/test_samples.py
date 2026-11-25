@@ -14,6 +14,9 @@ Train / test split (prototype plan, "Training and test data"):
 - all: per-image tests on train, summary on all fixtures. For the final check.
 --tabcap=train --tabcap-update rewrites tabcap_expected.json.
 
+The summary has two parts: with the label known list (as from /who), and
+with no known names (tabcap alone). The per-image results use the known list.
+
 tabcap_expected.json, per image, players by outcome (label = the truth,
 fixtures schema v2: every row scored, see the fixtures README):
 - correct: {name: team, or null for a row with no team that got none}
@@ -50,7 +53,8 @@ WEIGHTS: dict[str, float] = json.loads((DATA_DIR / "tabcap_weights.json").read_t
 
 Outcome = dict[str, dict[str, str | None]]
 
-_results: dict[str, tuple[dict[str, Any], Outcome]] = {}
+# Per image: label, outcome with the label known list, outcome with no known
+_results: dict[str, tuple[dict[str, Any], Outcome, Outcome]] = {}
 
 
 def outcome(label: dict[str, Any], got: dict[str, str]) -> Outcome:
@@ -96,7 +100,9 @@ def tabcap_dir(request: pytest.FixtureRequest) -> Iterator[Path]:
             EXPECTED.write_text(json.dumps(new, indent=1, ensure_ascii=False) + "\n")
 
 
-def _run(name: str, directory: Path) -> tuple[dict[str, Any], Outcome]:
+def _run(name: str, directory: Path) -> tuple[dict[str, Any], Outcome, Outcome]:
+    """(label, outcome with the label known list, outcome with no known
+    names: tabcap alone, no /who)"""
     if name not in _results:
         from PIL import Image
 
@@ -105,7 +111,12 @@ def _run(name: str, directory: Path) -> tuple[dict[str, Any], Outcome]:
         label: dict[str, Any] = json.loads((directory / f"{name}.json").read_text())
         with Image.open(directory / f"{name}.png") as image:
             got = read_teams(image, label["known"])
-        _results[name] = (label, outcome(label, dict(got)))
+            alone = read_teams(image, [])
+        _results[name] = (
+            label,
+            outcome(label, dict(got)),
+            outcome(label, dict(alone)),
+        )
     return _results[name]
 
 
@@ -178,7 +189,7 @@ def test_score_weighted() -> None:
 def test_fixture(
     fixture_name: str, tabcap_dir: Path, request: pytest.FixtureRequest
 ) -> None:  # pragma: nocover
-    _, result = _run(fixture_name, tabcap_dir)
+    _, result, _ = _run(fixture_name, tabcap_dir)
     if request.config.getoption("tabcap_update"):
         return
     expected = json.loads(EXPECTED.read_text()).get(fixture_name)
@@ -257,20 +268,31 @@ def test_summary(
     """Scores per group. Only a report: the per-image tests lock behavior"""
     selection = _selection(request.config)
     assert selection is not None
-    scores: dict[str, Score] = {}
+    # Index 1: with the label known list (as from /who); 2: no known names
+    scores: tuple[dict[str, Score], dict[str, Score]] = ({}, {})
     for fixture in MANIFEST.select(selection):
-        label, result = _run(fixture.name, tabcap_dir)
-        for group in _groups(fixture, label):
-            scores.setdefault(group, Score()).add(result, WEIGHTS[fixture.name])
+        label, *results = _run(fixture.name, tabcap_dir)
+        for by_group, result in zip(scores, results):
+            for group in _groups(fixture, label):
+                by_group.setdefault(group, Score()).add(result, WEIGHTS[fixture.name])
 
     header = (
         f"{'group':<34} {'img':>4} {'rows':>5} correct  wrong unknown extra | "
         "w-img w-corr w-wrng w-unkn"
     )
+    lines = []
+    for title, by_group in zip(
+        (
+            "with known names (the label list, as from /who)",
+            "no known names (tabcap alone)",
+        ),
+        scores,
+    ):
+        order = sorted(by_group, key=lambda g: (g != "all", g))
+        lines += [title, header, *(by_group[g].line(g) for g in order)]
     request.config.stash[REPORT_KEY] = [
         f"--tabcap={selection}, {MANIFEST.version}",
-        header,
-        *(scores[g].line(g) for g in sorted(scores, key=lambda g: (g != "all", g))),
+        *lines,
         "wrong includes extra (a team for an NPC or a name not in the list)",
         "w-*: weighted by how common the setup is (tests/data/tabcap_weights.json); "
         "w-img: effective number of images",
