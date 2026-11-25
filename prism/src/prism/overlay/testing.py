@@ -2,6 +2,7 @@
 
 import time
 from collections.abc import Iterable
+from pathlib import Path
 
 from prism.overlay.commandline import Options
 from prism.ssl_errors import is_missing_local_issuer_error
@@ -54,6 +55,22 @@ def test_pow(solver_name: str) -> None:  # pragma: nocover
     solver = self_test(solver_name)
     # Only printed if every solution verified. Raises otherwise.
     print(f"Proof-of-work OK: {solver.name}")
+
+
+def test_tabcap(path: Path) -> None:  # pragma: nocover
+    """Read the tab list in a screenshot. Checks that the reader runs in the build"""
+    import numpy as np
+    from PIL import Image
+
+    from prism.overlay.tabcap.reader import read_tab
+
+    with Image.open(path) as image:
+        rows = read_tab(np.asarray(image.convert("RGB")))
+    teams = sum(team is not None for _, team in rows)
+    # Names are not printed: real screenshots have real names
+    if not teams:
+        raise SystemExit(f"Tabcap failed: {len(rows)} rows, no team read")
+    print(f"Tabcap OK: {len(rows)} rows, {teams} teams")
 
 
 def preview_signin_page() -> None:  # pragma: nocover

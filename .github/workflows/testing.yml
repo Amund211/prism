@@ -112,6 +112,32 @@ jobs:
 
           uv run prism_overlay.py --test-ssl --settings=system_certs_settings.toml --logfile=latest.log ${{ env.TEE_STDERR }} | grep '^Got response: Hello world' >/dev/null 2>&1
 
+  # Keeps tests/data/tabcap_expected.json in sync with the team reader
+  tabcap-fixtures:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: prism
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version-file: prism/.python-version
+      - name: Install uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - name: Install dependencies
+        run: uv sync --locked
+      # A bucket version never changes, so the manifest hash is a safe key
+      - name: Cache tabcap fixtures
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: prism/tests/data/fixtures
+          key: tabcap-fixtures-${{ hashFiles('prism/tests/data/tabcap_fixtures.json') }}
+      # Train split only: test split scores must not show up in CI logs
+      - name: Run tabcap fixture tests (train split)
+        run: uv run pytest tests/prism/overlay/tabcap/test_samples.py --tabcap=train
+
   build:
     runs-on: ${{ matrix.os }}
     permissions:
@@ -139,7 +165,8 @@ jobs:
             # Target universal2 so that the built binary can run on both intel and apple silicon
             # Pass --windowed to build a .app bundle
             # Use --onedir instead of --onefile to avoid repeated security scans on startup
-            PYINSTALLER_ARGS: --target-architecture universal2 --windowed --onedir
+            # Exclude tabcap deps: no universal2 wheels, and tabcap is off on macOS
+            PYINSTALLER_ARGS: --target-architecture universal2 --windowed --onedir --exclude-module PIL --exclude-module numpy --exclude-module scipy --exclude-module cv2 --exclude-module onnxruntime
     defaults:
       run:
         shell: bash
@@ -198,6 +225,21 @@ jobs:
             else
               echo '::warning::Rosetta is not available, the x86_64 slice was not tested'
             fi
+          fi
+
+      - name: Test the tab-list reader in the built binary
+        if: matrix.OS_NAME != 'mac'
+        run: bash tests/tabcap_integration.sh "dist/${{ env.SIMPLE_NAME }}${{ matrix.RESULT_EXTENSION }}"
+
+      # Tabcap is off on macOS: its deps have no universal2 wheels
+      - name: Check that the tab-list reader deps are not bundled (mac)
+        if: matrix.OS_NAME == 'mac'
+        run: |
+          found="$(find "dist/${{ env.SIMPLE_NAME }}.app" \( -name 'cv2' -o -name 'onnxruntime' -o -name 'numpy' -o -name 'scipy' \) -print)"
+          if [ -n "$found" ]; then
+            echo "$found"
+            echo '::error::tabcap deps are in the macOS bundle'
+            exit 1
           fi
 
       - name: Prepare to package app bundle to disk image (mac)

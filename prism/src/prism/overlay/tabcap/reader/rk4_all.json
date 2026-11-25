@@ -1,0 +1,62 @@
+{
+  "model": "rk4_all.onnx",
+  "sha256": "73687777e1d00b4716ead445ad7827dc8a87d9828170f840bd26fd83ca9c0028",
+  "params": 827574,
+  "io": {
+    "input": "x: B x 3 x 20 x W float32, RGB / 255, dynamic width",
+    "output": "y: B x 78 x T logits, index 0 = CTC blank, index i + 1 = charset[i]"
+  },
+  "charset": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_[]+ ①②③④⑤⑥⑦⑧⑨⑩",
+  "tokens": {
+    "team": {"①": "red", "②": "blue", "③": "green", "④": "yellow", "⑤": "aqua", "⑥": "white", "⑦": "pink", "⑧": "gray"},
+    "kind": {"⑨": "respawning", "⑩": "spectator"}
+  },
+  "crop": {
+    "height": 20,
+    "band": "rows y - k .. y + 9k (k = GUI scale), x0 - 2k .. x1 + 2k",
+    "width": "round(w * 2 / k)",
+    "resize": "INTER_AREA if k > 2, else INTER_NEAREST",
+    "rows": "whole row x0 .. x1 of each front region; one crop per run; greedy CTC"
+  },
+  "target": "<team token> <name> <health>, one space between words; kind token and no team token for respawning / spectator rows; \"\" for negative rows",
+  "net": "c2_train.Net, width 1.5, depth 4, tf 2",
+  "train": {
+    "code": "lab branch tabcap-tablist @ 029d2b9f; composite generator tabcap-synth-calib @ 25fdb0c1",
+    "env": "Python 3.14.10, torch 2.15.0+cpu, numpy 2.5.5, opencv-python-headless 5.0.0.93, onnx 1.23.2, onnxruntime 1.32.0",
+    "chain": [
+      {"step": 1, "cmd": "c2_gen.py v3n_s8 200000 0.6 hard 3 8 v3n", "seed": 8},
+      {"step": 2, "cmd": "c2_gen.py comp3_s1 200000 0.6 hard 3 21 comp", "seed": 21},
+      {"step": 3, "cmd": "c2_train.py v3c3_tf v3n_s8,comp3_s1 -1 8 --tokens --threads 6 --width 1.5 --depth 4 --tf 2", "seed": 0},
+      {"step": 4, "cmd": "c2_gen.py v3k_s1 100000 0.6 hard 3 31 v3k", "seed": 31},
+      {"step": 5, "cmd": "c2_gen.py compk_s1 50000 0.6 hard 3 32 compk", "seed": 32},
+      {"step": 6, "cmd": "c2_train.py kf4 v3k_s1 -1 4 --tokens --kinds --threads 12 --width 1.5 --depth 4 --tf 2 --init v3c3_tf --lr 1e-3 --limit 50000 --extra compk_s1:1", "seed": 0},
+      {"step": 7, "cmd": "c2_real.py kinds", "seed": null},
+      {"step": 8, "cmd": "c2_train.py rk4_all v3k_s1 -1 4 --tokens --kinds --threads 12 --width 1.5 --depth 4 --tf 2 --init kf4 --lr 1e-3 --limit 100000 --extra realk_all:8", "seed": 0}
+    ],
+    "args": {
+      "name": "rk4_all",
+      "data": "v3k_s1",
+      "fold": -1,
+      "epochs": 4,
+      "width": 1.5,
+      "depth": 4,
+      "seed": 0,
+      "threads": 12,
+      "limit": 100000,
+      "tokens": true,
+      "kinds": true,
+      "tf": 2,
+      "init": "kf4",
+      "lr": 0.001,
+      "extra": "realk_all:8"
+    }
+  },
+  "fixtures": "tabcap_fixtures_2026-11-21",
+  "policy": "B4",
+  "bench": [
+    {"model": "rk4_ (3 folds by font pack)", "set": "train 206", "full": 95.2, "w_full": 93.4, "bad": 36, "prec": 98.4, "w_prec": 99.1, "wrong": 0},
+    {"model": "rk4_ folds (mean)", "set": "test 106", "full": 91.6, "w_full": 89.2, "bad": 67, "prec": 94.2, "w_prec": 93.4, "wrong": 0},
+    {"model": "rk4_all", "set": "test 106", "full": 91.9, "w_full": 89.3, "bad": 49, "prec": 95.7, "w_prec": 99.0, "wrong": 0, "snap": 91.9}
+  ],
+  "note": "rk4_all train scores are not fair (it saw every real train row): judge train by the rk4_ folds. The synth font bank holds the fonts of every test pack."
+}

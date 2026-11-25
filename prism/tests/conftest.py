@@ -5,6 +5,37 @@ from typing import cast
 
 import pytest
 
+from tests.tabcap_fixtures import REPORT_KEY
+
+
+def pytest_addoption(parser: pytest.Parser) -> None:
+    group = parser.getgroup("tabcap", "tabcap fixtures (tests/tabcap_fixtures.py)")
+    group.addoption(
+        "--tabcap",
+        choices=("train", "test", "all"),
+        default=None,
+        help=(
+            "Run the tabcap fixture tests on this split. train: per-image results "
+            "(use this for algorithm work). test: only the summary scores. "
+            "all: both, on all fixtures."
+        ),
+    )
+    group.addoption(
+        "--tabcap-update",
+        action="store_true",
+        help="Write the current per-image results as the expected results",
+    )
+
+
+def pytest_terminal_summary(
+    terminalreporter: pytest.TerminalReporter, config: pytest.Config
+) -> None:
+    lines = config.stash.get(REPORT_KEY, [])
+    if lines:
+        terminalreporter.section("tabcap scores")
+        for line in lines:
+            terminalreporter.write_line(line)
+
 
 @pytest.fixture(scope="session")
 def data_directory() -> Path:

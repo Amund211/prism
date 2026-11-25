@@ -16,6 +16,12 @@ dependencies = [
     "truststore==0.10.5",
     "pynput==1.8.2",
     "pywin32==312; platform_system=='Windows'",
+    "mss==10.2.0",
+    "pillow==13.0.0",
+    "numpy==2.5.4",
+    "scipy==1.18.1",
+    "opencv-python-headless==5.0.0.93",
+    "onnxruntime==1.32.0 ; python_full_version < '3.15' and sys_platform != 'darwin'",
 ]
 classifiers = [
     "Programming Language :: Python :: 3"
@@ -37,7 +43,6 @@ dev = [
     "flake8==7.5.0",
     "isort==9.0.2",
     "mypy==2.4.1",
-    "pillow==13.0.0",
     "prek==0.5.10",
     "pyinstaller==6.22.3",
     "pytest==9.2.0",
@@ -67,13 +72,14 @@ exclude = '''
   | dist
   | venv
   | .venv
+  | tabcap-train
 )/
 '''
 
 [tool.isort]
 profile = "black"
 known_first_party = "prism"
-skip = ".git,.mypy_cache,__pycache__,build,dist,venv,.venv"
+skip = ".git,.mypy_cache,__pycache__,build,dist,venv,.venv,tabcap-train"
 
 [tool.mypy]
 exclude = [
@@ -84,7 +90,18 @@ exclude = [
   '^dist/$',
   '^venv/$',
   '^.venv/$',
+  # Own uv project with its own hooks (lab code, not typed)
+  '^tabcap-train/',
 ]
+
+# No type hints, and not installed on macOS
+[[tool.mypy.overrides]]
+module = ["onnxruntime", "onnxruntime.*"]
+ignore_missing_imports = true
+
+[tool.pytest]
+# tabcap-train/tests belong to that uv project
+testpaths = ["tests"]
 
 [tool.coverage.run]
 source=['src/prism']
@@ -97,5 +114,9 @@ fail_under=100
 omit=[
   'src/prism/stats.py',
   'src/prism/overlay/platform/windows.py',
+  'src/prism/overlay/tabcap/window_windows.py',
+  'src/prism/overlay/tabcap/window_x11.py',
+  # Lab front port, tested by test_front.py (pytest --tabcap=train)
+  'src/prism/overlay/tabcap/reader/front/*',
   'src/prism/discordrp/__init__.py',
 ]

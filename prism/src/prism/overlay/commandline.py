@@ -13,6 +13,7 @@ class Options:
     loglevel: int
     test_ssl: bool
     test_pow: str | None
+    test_tabcap: Path | None
     test: bool
     preview_signin_page: bool
 
@@ -73,6 +74,14 @@ def get_options(
         default=None,
     )
 
+    # Used for testing the tab-list reader in the built binary. Takes a screenshot.
+    parser.add_argument(
+        "--test-tabcap",
+        help=argparse.SUPPRESS,
+        type=resolve_path,
+        default=None,
+    )
+
     parser.add_argument(
         "--test",
         help=argparse.SUPPRESS,
@@ -96,6 +105,7 @@ def get_options(
     assert isinstance(parsed.verbose, int)
     assert isinstance(parsed.test_ssl, bool)
     assert parsed.test_pow is None or isinstance(parsed.test_pow, str)
+    assert parsed.test_tabcap is None or isinstance(parsed.test_tabcap, Path)
     assert isinstance(parsed.test, bool)
     assert isinstance(parsed.preview_signin_page, bool)
 
@@ -119,6 +129,7 @@ def get_options(
         loglevel=loglevel,
         test_ssl=parsed.test_ssl,
         test_pow=parsed.test_pow,
+        test_tabcap=parsed.test_tabcap,
         test=parsed.test,
         preview_signin_page=parsed.preview_signin_page,
     )

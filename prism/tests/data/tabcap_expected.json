@@ -1,0 +1,3966 @@
+{
+ "screenshot-win-forge-betterbedwars-gs2-16rows-01": {
+  "correct": {
+   "A_Human2": "green",
+   "AleksanderIII": "blue",
+   "Deutronic": "red",
+   "IcyBuilder07": "yellow",
+   "Kropper09": "pink",
+   "Mr_Kuba": "white",
+   "Olimp9": "gray",
+   "OneEmpTy": "aqua",
+   "Skydeaf": "gray",
+   "TYGEU34": "yellow",
+   "Tanuci": "pink",
+   "bobby15041998": "blue",
+   "darkalaya": "aqua",
+   "green_name": "red",
+   "niekon36": "white",
+   "xCarbink": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "screenshot-win-forge-betterbedwars-gs2-16rows-02": {
+  "correct": {
+   "A_Human2": "green",
+   "AleksanderIII": "blue",
+   "Deutronic": "red",
+   "IcyBuilder07": "yellow",
+   "Kropper09": "pink",
+   "Mr_Kuba": "white",
+   "Olimp9": "gray",
+   "OneEmpTy": "aqua",
+   "Skydeaf": "gray",
+   "TYGEU34": "yellow",
+   "Tanuci": "pink",
+   "bobby15041998": "blue",
+   "darkalaya": "aqua",
+   "green_name": "red",
+   "niekon36": "white",
+   "xCarbink": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "screenshot-win-forge-betterbedwars-gs2-6rows-01": {
+  "correct": {
+   "2a2t": "green",
+   "2a2ts": "green",
+   "Kani2015": "gray",
+   "PHANT0M__": "white",
+   "Skydeaf": "red",
+   "hiding_norsu": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "screenshot-win-forge-betterbedwars-gs2-7rows-01": {
+  "correct": {
+   "2a2t": "green",
+   "2a2ts": "green",
+   "CottonSpore": "white",
+   "Kani2015": "gray",
+   "PHANT0M__": "white",
+   "Skydeaf": "red",
+   "hiding_norsu": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "screenshot-win-forge-betterbedwars-gs2-covered-16rows-01": {
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "A_Human2": "label green",
+   "AleksanderIII": "label blue",
+   "Deutronic": "label red",
+   "IcyBuilder07": "label yellow",
+   "Kropper09": "label pink",
+   "Mr_Kuba": "label white",
+   "Olimp9": "label gray",
+   "OneEmpTy": "label aqua",
+   "Skydeaf": "label gray",
+   "TYGEU34": "label yellow",
+   "Tanuci": "label pink",
+   "bobby15041998": "label blue",
+   "darkalaya": "label aqua",
+   "green_name": "label red",
+   "niekon36": "label white",
+   "xCarbink": "label green"
+  },
+  "npc": {},
+  "extra": {}
+ },
+ "screenshot-win-forge-betterbedwars-gs2-covered-16rows-02": {
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "A_Human2": "label green",
+   "AleksanderIII": "label blue",
+   "Deutronic": "label red",
+   "IcyBuilder07": "label yellow",
+   "Kropper09": "label pink",
+   "Mr_Kuba": "label white",
+   "Olimp9": "label gray",
+   "OneEmpTy": "label aqua",
+   "Skydeaf": "label gray",
+   "TYGEU34": "label yellow",
+   "Tanuci": "label pink",
+   "bobby15041998": "label blue",
+   "darkalaya": "label aqua",
+   "green_name": "label red",
+   "niekon36": "label white",
+   "xCarbink": "label green"
+  },
+  "npc": {},
+  "extra": {}
+ },
+ "screenshot-win-forge-betterbedwars-gs2-lobby-01": {
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "screenshot-win-forge-betterbedwars-gs2-respawning-covered-13rows-01": {
+  "correct": {
+   "A_Human2": "green",
+   "AleksanderIII": "blue",
+   "IcyBuilder07": "yellow",
+   "Kropper09": "pink",
+   "Mr_Kuba": "white",
+   "OneEmpTy": "aqua",
+   "Skydeaf": null,
+   "TYGEU34": "yellow",
+   "Tanuci": "pink",
+   "bobby15041998": "blue",
+   "darkalaya": "aqua",
+   "niekon36": "white",
+   "xCarbink": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "screenshot-win-forge-betterbedwars-gs2-respawning-covered-15rows-01": {
+  "correct": {
+   "A_Human2": "green",
+   "AleksanderIII": "blue",
+   "Deutronic": "red",
+   "IcyBuilder07": "yellow",
+   "Kropper09": "pink",
+   "Mr_Kuba": "white",
+   "OneEmpTy": "aqua",
+   "Skydeaf": null,
+   "TYGEU34": "yellow",
+   "Tanuci": "pink",
+   "bobby15041998": "blue",
+   "darkalaya": "aqua",
+   "green_name": "red",
+   "niekon36": "white",
+   "xCarbink": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "screenshot-win-forge-betterbedwars-gs2-respawning-covered-15rows-02": {
+  "correct": {
+   "Deutronic": "red",
+   "IcyBuilder07": "yellow",
+   "Kropper09": "pink",
+   "Mr_Kuba": "white",
+   "Skydeaf": null,
+   "TYGEU34": "yellow",
+   "green_name": "red",
+   "niekon36": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "A_Human2": "label green",
+   "AleksanderIII": "label blue",
+   "OneEmpTy": "label aqua",
+   "Tanuci": "label pink",
+   "bobby15041998": "label blue",
+   "darkalaya": "label aqua",
+   "xCarbink": "label green"
+  },
+  "npc": {},
+  "extra": {}
+ },
+ "screenshot-win-lunar-vanilla-gs2-3rows-01": {
+  "correct": {},
+  "wrong": {},
+  "unknown": {
+   "CottonSpore": "label white",
+   "PHANT0M__": "label white",
+   "Skydeaf": "label red"
+  },
+  "npc": {},
+  "extra": {}
+ },
+ "screenshot-win-lunar-vanilla-gs2-game-start-14rows-01": {
+  "correct": {
+   "Acxus_Play": "red",
+   "JUANPUNT": "green",
+   "JuanMC_55": "red",
+   "LOUIEOLAI13": "gray",
+   "Lalimvd2": "yellow",
+   "MapacheCraft": "blue",
+   "Rkzp201": "pink",
+   "SigTill": "gray",
+   "Skydeaf": "aqua",
+   "markoeboe": "green",
+   "nthrnx": "white",
+   "piercenpuffs": "white",
+   "rinnnei": "pink",
+   "velion_m": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "screenshot-win-lunar-vanilla-gs2-game-start-15rows-01": {
+  "correct": {
+   "Acxus_Play": "red",
+   "JUANPUNT": "green",
+   "JuanMC_55": "red",
+   "LOUIEOLAI13": "gray",
+   "Lalimvd2": "yellow",
+   "MapacheCraft": "blue",
+   "Pgiol": "blue",
+   "Rkzp201": "pink",
+   "SigTill": "gray",
+   "Skydeaf": "aqua",
+   "markoeboe": "green",
+   "nthrnx": "white",
+   "piercenpuffs": "white",
+   "rinnnei": "pink",
+   "velion_m": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "screenshot-win-lunar-vanilla-gs2-game-start-15rows-02": {
+  "correct": {
+   "Acxus_Play": "red",
+   "JUANPUNT": "green",
+   "JuanMC_55": "red",
+   "LOUIEOLAI13": "gray",
+   "Lalimvd2": "yellow",
+   "MapacheCraft": "blue",
+   "Pgiol": "blue",
+   "Rkzp201": "pink",
+   "SigTill": "gray",
+   "Skydeaf": "aqua",
+   "markoeboe": "green",
+   "nthrnx": "white",
+   "piercenpuffs": "white",
+   "rinnnei": "pink",
+   "velion_m": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "screenshot-win-lunar-vanilla-gs2-game-start-respawning-15rows-01": {
+  "correct": {
+   "Acxus_Play": "red",
+   "JUANPUNT": "green",
+   "JuanMC_55": "red",
+   "LOUIEOLAI13": "gray",
+   "MapacheCraft": "blue",
+   "Pgiol": null,
+   "Rkzp201": "pink",
+   "SigTill": "gray",
+   "Skydeaf": "aqua",
+   "markoeboe": "green",
+   "nthrnx": "white",
+   "piercenpuffs": "white",
+   "rinnnei": "pink",
+   "velion_m": "yellow"
+  },
+  "wrong": {},
+  "unknown": {
+   "Lalimvd2": "label yellow"
+  },
+  "npc": {},
+  "extra": {}
+ },
+ "screenshot-win-lunar-vanilla-gs2-game-start-respawning-3rows-01": {
+  "correct": {
+   "Skydeaf": null
+  },
+  "wrong": {},
+  "unknown": {
+   "CottonSpore": "label white",
+   "PHANT0M__": "label white"
+  },
+  "npc": {},
+  "extra": {}
+ },
+ "screenshot-win-lunar-vanilla-gs2-lobby-01": {
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "synthetic-win-forge-optifine-vanilla-gs3-1440p-game-start-15rows-01": {
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "synthetic-win-forge-optifine-vanilla-gs4-2160p-game-start-15rows-01": {
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "synthetic-win-forge-optifine-vanilla-gs5-1440p-windowed-auto-game-start-15rows-01": {
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "synthetic-win-forge-optifine-vanilla-gs6-1440p-auto-game-start-15rows-01": {
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "synthetic-win-forge-optifine-vanilla-gs6-uw1440p-auto-game-start-15rows-01": {
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "synthetic-win-forge-optifine-vanilla-gs9-2160p-auto-game-start-15rows-01": {
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-linux-forge-bombies-gs2-14rows-01": {
+  "correct": {
+   "ALBIcool5": "green",
+   "Avio23_09q2": "blue",
+   "BlackOscar": "blue",
+   "Butrus_21": "white",
+   "Cobria837": "white",
+   "DR_Hotdog_YT": "green",
+   "HakSal09": "gray",
+   "ItsNovaGG": "pink",
+   "Kaptein_Potet": "red",
+   "LowTide123": "yellow",
+   "P1nk1_jr": "red",
+   "Skydeaf": "pink",
+   "chrissypooh42o": "yellow",
+   "hajin_09": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-linux-forge-bombies-gs2-16rows-01": {
+  "correct": {
+   "AJKD": "green",
+   "BastiGHG________": "blue",
+   "Blugree": "green",
+   "Crafty_Chief": "red",
+   "EliteVeil186789": "yellow",
+   "Giacuanno": "green",
+   "GirlyJoeyJedi": "red",
+   "Hxrse": "red",
+   "JonWeb7049": "yellow",
+   "RODARI11": "green",
+   "RenkieX": "yellow",
+   "Skydeaf": "blue",
+   "itzanne18": "red",
+   "karoLinsa": "blue",
+   "ma4dziulaa": "blue",
+   "red_Gamerr": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-linux-forge-bombies-gs2-16rows-02": {
+  "correct": {
+   "AnanasTZ": "yellow",
+   "KekMum": "yellow",
+   "Killua_2307": "blue",
+   "Krzyniu": "blue",
+   "Matas1907": "blue",
+   "Matten_Jo": "red",
+   "Skycrafter_75": "yellow",
+   "Skydeaf": "red",
+   "WifiSurfre5188": "yellow",
+   "_BidLinkoln_": "green",
+   "captalm": "green",
+   "fxirs": "red",
+   "jimmy_twotimes": "green",
+   "octuplestorm": "blue",
+   "sc123262009": "green",
+   "xDTL8": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-linux-forge-bombies-gs2-16rows-03": {
+  "correct": {
+   "ALBIcool5": "green",
+   "Avio23_09q2": "blue",
+   "BlackOscar": "blue",
+   "Butrus_21": "white",
+   "Cobria837": "white",
+   "DR_Hotdog_YT": "green",
+   "HakSal09": "gray",
+   "ItsNovaGG": "pink",
+   "Kaptein_Potet": "red",
+   "LowTide123": "yellow",
+   "McLuhan2010": "aqua",
+   "P1nk1_jr": "red",
+   "Skydeaf": "pink",
+   "chrissypooh42o": "yellow",
+   "hajin_09": "gray",
+   "whimsical_plague": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-linux-forge-bombies-gs2-16rows-04": {
+  "correct": {
+   "Bayez": "blue",
+   "DEW1R": "red",
+   "DroidRaptor": "white",
+   "FireballGT": "white",
+   "Himashm": "aqua",
+   "MBsT": "red",
+   "Oll8": "green",
+   "Sithichean": "gray",
+   "Skydeaf": "pink",
+   "V3OS": "yellow",
+   "_Puzo_": "aqua",
+   "dorble": "green",
+   "ifyouseekharry": "gray",
+   "lixelv": "blue",
+   "winexp": "pink"
+  },
+  "wrong": {},
+  "unknown": {
+   "VE07": "label yellow"
+  },
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-linux-forge-bombies-gs2-16rows-05": {
+  "correct": {
+   "ALBIcool5": "green",
+   "Avio23_09q2": "blue",
+   "BlackOscar": "blue",
+   "Butrus_21": "white",
+   "Cobria837": "white",
+   "DR_Hotdog_YT": "green",
+   "HakSal09": "gray",
+   "ItsNovaGG": "pink",
+   "Kaptein_Potet": "red",
+   "LowTide123": "yellow",
+   "McLuhan2010": "aqua",
+   "P1nk1_jr": "red",
+   "Skydeaf": "pink",
+   "chrissypooh42o": "yellow",
+   "hajin_09": "gray",
+   "whimsical_plague": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-linux-forge-bombies-gs2-6rows-01": {
+  "correct": {
+   "ALBIcool5": "green",
+   "Butrus_21": "white",
+   "Cobria837": "white",
+   "DR_Hotdog_YT": "green",
+   "ItsNovaGG": "pink",
+   "Skydeaf": "pink"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-linux-forge-bombies-gs2-7rows-01": {
+  "correct": {
+   "ALBIcool5": "green",
+   "Butrus_21": "white",
+   "Cobria837": "white",
+   "DR_Hotdog_YT": "green",
+   "ItsNovaGG": "pink",
+   "Kaptein_Potet": "red",
+   "Skydeaf": "pink"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-linux-forge-bombies-gs2-8rows-01": {
+  "correct": {
+   "KekMum": "yellow",
+   "Matten_Jo": "red",
+   "Skycrafter_75": "yellow",
+   "Skydeaf": "red",
+   "WifiSurfre5188": "yellow",
+   "fxirs": "red",
+   "octuplestorm": "blue",
+   "xDTL8": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-linux-forge-bombies-gs2-8rows-02": {
+  "correct": {
+   "C0ldSlime": "white",
+   "FakeeTom": "gray",
+   "R4yan_3xe": "red",
+   "Sithichean": "green",
+   "Skydeaf": "red",
+   "_isy__": "gray",
+   "ifyouseekharry": "green",
+   "theamazingwar": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-linux-forge-bombies-gs2-game-start-12rows-01": {
+  "correct": {
+   "AJKD": "green",
+   "BastiGHG________": "blue",
+   "Blugree": "green",
+   "Crafty_Chief": "red",
+   "EliteVeil186789": "yellow",
+   "JonWeb7049": "yellow",
+   "RODARI11": "green",
+   "RenkieX": "yellow",
+   "Skydeaf": "blue",
+   "itzanne18": "red",
+   "karoLinsa": "blue",
+   "ma4dziulaa": "blue"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-linux-forge-bombies-gs2-game-start-16rows-01": {
+  "correct": {
+   "AJKD": "green",
+   "BastiGHG________": "blue",
+   "Blugree": "green",
+   "Crafty_Chief": "red",
+   "EliteVeil186789": "yellow",
+   "Giacuanno": "green",
+   "GirlyJoeyJedi": "red",
+   "Hxrse": "red",
+   "JonWeb7049": "yellow",
+   "RODARI11": "green",
+   "RenkieX": "yellow",
+   "Skydeaf": "blue",
+   "itzanne18": "red",
+   "karoLinsa": "blue",
+   "ma4dziulaa": "blue",
+   "red_Gamerr": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-linux-forge-bombies-gs2-game-start-16rows-02": {
+  "correct": {
+   "AnanasTZ": "yellow",
+   "KekMum": "yellow",
+   "Killua_2307": "blue",
+   "Krzyniu": "blue",
+   "Matas1907": "blue",
+   "Matten_Jo": "red",
+   "Skycrafter_75": "yellow",
+   "Skydeaf": "red",
+   "WifiSurfre5188": "yellow",
+   "_BidLinkoln_": "green",
+   "captalm": "green",
+   "fxirs": "red",
+   "jimmy_twotimes": "green",
+   "octuplestorm": "blue",
+   "sc123262009": "green",
+   "xDTL8": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-linux-forge-bombies-gs2-game-start-16rows-03": {
+  "correct": {
+   "BigBlueMoney": "pink",
+   "BloodDeep": "aqua",
+   "C0ldSlime": "white",
+   "Cxnnamox": "yellow",
+   "FakeeTom": "gray",
+   "Latyatyutya": "blue",
+   "Popka_bolit": "aqua",
+   "R4yan_3xe": "red",
+   "Sithichean": "green",
+   "Skydeaf": "red",
+   "Super_Tobi_08": "blue",
+   "_isy__": "gray",
+   "cX_p1d": "yellow",
+   "ifyouseekharry": "green",
+   "pp11g": "pink",
+   "theamazingwar": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-linux-forge-bombies-gs2-game-start-7rows-01": {
+  "correct": {
+   "BlossomLevi3": "gray",
+   "Jdo4": "yellow",
+   "Prestoony": "red",
+   "Skydeaf": "blue",
+   "odtv": "pink",
+   "phalanxtheboss": "aqua",
+   "skibiditoilet782": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-linux-forge-bombies-gs2-game-start-respawning-5rows-01": {
+  "correct": {
+   "C0ldSlime": "white",
+   "Sithichean": "green",
+   "Skydeaf": null,
+   "ifyouseekharry": "green",
+   "theamazingwar": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-linux-forge-bombies-gs2-game-start-two-columns-16rows-01": {
+  "correct": {
+   "Bayez": "blue",
+   "DEW1R": "red",
+   "DroidRaptor": "white",
+   "FireballGT": "white",
+   "Himashm": "aqua",
+   "MBsT": "red",
+   "Oll8": "green",
+   "Sithichean": "gray",
+   "Skydeaf": "pink",
+   "V3OS": "yellow",
+   "_Puzo_": "aqua",
+   "dorble": "green",
+   "ifyouseekharry": "gray",
+   "lixelv": "blue",
+   "winexp": "pink"
+  },
+  "wrong": {},
+  "unknown": {
+   "VE07": "label yellow"
+  },
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-linux-forge-bombies-gs2-lobby-01": {
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-linux-forge-bombies-gs2-lobby-02": {
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-linux-noclient-nofont-gsx-no-tab-01": {
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc02-gs1-15rows-01": {
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc02-gs2-14rows-01": {
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc02-gs2-15rows-01": {
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc02-gs3-14rows-01": {
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc02-gs3-15rows-01": {
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc03-gs1-11rows-01": {
+  "correct": {
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc03-gs1-respawning-12rows-01": {
+  "correct": {
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": null
+  },
+  "wrong": {},
+  "unknown": {
+   "Istic_": "label green"
+  },
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc03-gs2-11rows-01": {
+  "correct": {
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc03-gs2-12rows-01": {
+  "correct": {
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc03-gs2-respawning-12rows-01": {
+  "correct": {
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": null,
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc03-gs3-10rows-01": {
+  "correct": {
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc03-gs3-11rows-01": {
+  "correct": {
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc03-gs3-respawning-11rows-01": {
+  "correct": {
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": null,
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc03-gs4-11rows-01": {
+  "correct": {
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": "white",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc03-gs4-12rows-01": {
+  "correct": {
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc04-gs3-10rows-01": {
+  "correct": {
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc04-gs3-11rows-01": {
+  "correct": {
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc05-gs2-15rows-01": {
+  "correct": {
+   "BW231215": "aqua",
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "Tinoro16": "aqua",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc05-gs3-15rows-01": {
+  "correct": {
+   "BW231215": "aqua",
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "Tinoro16": "aqua",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {
+   "_wasper": "label gray",
+   "ryanyz": "label gray"
+  },
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc05-gs4-10rows-01": {
+  "correct": {
+   "Hyrv": "gray",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc05-gs4-15rows-01": {
+  "correct": {
+   "BW231215": "aqua",
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "Tinoro16": "aqua",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc06-gs1-15rows-01": {
+  "correct": {
+   "BW231215": "aqua",
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "Tinoro16": "aqua",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc06-gs3-13rows-01": {
+  "correct": {
+   "BW231215": "aqua",
+   "Cptobvious50": "green",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "Tinoro16": "aqua",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc06-gs3-14rows-01": {
+  "correct": {
+   "BW231215": "aqua",
+   "Cptobvious50": "green",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "Tinoro16": "aqua",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc06-gs4-12rows-01": {
+  "correct": {
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "_wasper": "gray",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc06-gs4-13rows-01": {
+  "correct": {
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "Tinoro16": "aqua",
+   "_wasper": "gray",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc07-gs1-12rows-01": {
+  "correct": {
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {
+   "goku_mekory": "label white"
+  },
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc07-gs2-12rows-01": {
+  "correct": {
+   "Cptobvious50": "green",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc07-gs2-no-tab-01": {
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc07-gs3-12rows-01": {
+  "correct": {
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": "red",
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc08-gs3-spectator-12rows-01": {
+  "correct": {
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc08-gs3-spectator-13rows-01": {
+  "correct": {
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc08-gs3-spectator-respawning-12rows-01": {
+  "correct": {
+   "Cptobvious50": null,
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc08-gs4-spectator-13rows-01": {
+  "correct": {
+   "Cptobvious50": "green",
+   "KajtoPL": "pink",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "_wasper": "gray",
+   "endofjourney": "white",
+   "goku_mekory": "white",
+   "ryanyz": "gray"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc13-gs2-spectator-10rows-01": {
+  "correct": {
+   "Cptobvious50": "green",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc13-gs2-spectator-8rows-01": {
+  "correct": {
+   "Cptobvious50": "green",
+   "Mega_Moon": "yellow",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc13-gs2-spectator-9rows-01": {
+  "correct": {
+   "Cptobvious50": "green",
+   "Mega_Moon": "yellow",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc13-gs2-spectator-respawning-10rows-01": {
+  "correct": {
+   "Cptobvious50": "green",
+   "Mega_Moon": "yellow",
+   "Moustibave": null,
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc13-gs2-spectator-respawning-10rows-02": {
+  "correct": {
+   "Cptobvious50": "green",
+   "Mega_Moon": "yellow",
+   "Moustibave": null,
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "endofjourney": null,
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc13-gs3-spectator-10rows-01": {
+  "correct": {
+   "Cptobvious50": "green",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc13-gs3-spectator-9rows-01": {
+  "correct": {
+   "Cptobvious50": "green",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc13-gs3-spectator-9rows-02": {
+  "correct": {
+   "Cptobvious50": "green",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc15-gs1-9rows-01": {
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "SenkuroMashiro": "green",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "wilhelmhaes": "yellow",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc15-gs1-spectator-10rows-01": {
+  "correct": {
+   "Cptobvious50": "green",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc15-gs3-9rows-01": {
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "SenkuroMashiro": "green",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "wilhelmhaes": "yellow",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc15-gs3-spectator-10rows-01": {
+  "correct": {
+   "Cptobvious50": "green",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc15-gs4-8rows-01": {
+  "correct": {
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "SenkuroMashiro": "green",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "wilhelmhaes": "yellow",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc15-gs4-spectator-10rows-01": {
+  "correct": {
+   "Cptobvious50": "green",
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Phantamvoid": "green",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc16-gs1-spectator-8rows-01": {
+  "correct": {
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc16-gs4-spectator-7rows-01": {
+  "correct": {
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "endofjourney": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc16-gs4-spectator-8rows-01": {
+  "correct": {
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc16-gs4-spectator-respawning-8rows-01": {
+  "correct": {
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": null
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc17-gs1-11rows-01": {
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "xms_vax": "yellow",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc17-gs1-spectator-8rows-01": {
+  "correct": {
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-10rows-01": {
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "xms_vax": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-10rows-02": {
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "wilhelmhaes": "yellow",
+   "xms_vax": "yellow",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-11rows-01": {
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "xms_vax": "yellow",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-11rows-02": {
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "wilhelmhaes": "yellow",
+   "xms_vax": "yellow",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-8rows-01": {
+  "correct": {
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "xms_vax": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-9rows-01": {
+  "correct": {
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "xms_vax": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-spectator-12rows-01": {
+  "correct": {
+   "37iajacogh": null,
+   "DAVIDSEOJUN0613": "yellow",
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "wilhelmhaes": "yellow",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-spectator-8rows-01": {
+  "correct": {
+   "Mega_Moon": "yellow",
+   "Moustibave": "blue",
+   "Orion233": "pink",
+   "Ryan_Pinguin": "yellow",
+   "Skydeaf": null,
+   "Sunny1912": "blue",
+   "endofjourney": "white",
+   "goku_mekory": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-spectator-respawning-10rows-01": {
+  "correct": {
+   "DAVIDSEOJUN0613": null,
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-spectator-respawning-12rows-01": {
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "wilhelmhaes": null,
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-tc17-gs2-spectator-respawning-9rows-01": {
+  "correct": {
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "yCut": null
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-vanilla-gs1-10rows-01": {
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "xms_vax": "yellow",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-vanilla-gs1-11rows-01": {
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "JD9999": "red",
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "xms_vax": "yellow",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-vanilla-gs1-respawning-11rows-01": {
+  "correct": {
+   "DAVIDSEOJUN0613": "yellow",
+   "JD9999": null,
+   "MyWayOrHighWay": "green",
+   "OliverCSJ": "green",
+   "SenkuroMashiro": "green",
+   "Shachimy44": "red",
+   "Skydeaf": "yellow",
+   "TheRealLoppa": "green",
+   "ehfi": "red",
+   "xms_vax": "yellow",
+   "yCut": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-vanilla-gs2-15rows-01": {
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-forge-optifine-vanilla-gs2-game-start-15rows-01": {
+  "correct": {
+   "BiberYT": "red",
+   "DragonStar_11": "green",
+   "Hyrv": "gray",
+   "Istic_": "green",
+   "KoichiLive": "red",
+   "NoodleDoodle111": "yellow",
+   "Not_Bacon80": "aqua",
+   "Skydeaf": "aqua",
+   "Tillmann_PvP": "yellow",
+   "_Atory": "pink",
+   "_tnm": "white",
+   "aleseq": "blue",
+   "f1sak": "gray",
+   "siimajs": "blue",
+   "wearwolf": "white"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc04-gs1-9rows-01": {
+  "correct": {
+   "Dewier12": "red",
+   "DiamantySD15": "green",
+   "NOOB_1490": "green",
+   "Sam74538": "red",
+   "Skydeaf": "blue",
+   "Tigre_CPVP": "red",
+   "ZixBylfEw": "red",
+   "_wductien": "green",
+   "dlchae": "blue"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc04-gs2-14rows-01": {
+  "correct": {
+   "Dewier12": "red",
+   "DiamantySD15": "green",
+   "Glados987": "blue",
+   "Jcyuri": "yellow",
+   "NOOB_1490": "green",
+   "Sam74538": "red",
+   "Skydeaf": "blue",
+   "Tigre_CPVP": "red",
+   "Tizii_199": "green",
+   "YSFKB": "blue",
+   "ZixBylfEw": "red",
+   "_wductien": "green",
+   "dlchae": "blue",
+   "interble": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc04-gs2-9rows-01": {
+  "correct": {
+   "DiamantySD15": "green",
+   "NOOB_1490": "green",
+   "Sam74538": "red",
+   "Skydeaf": "blue",
+   "Tigre_CPVP": "red",
+   "Tizii_199": "green",
+   "ZixBylfEw": "red",
+   "_wductien": "green",
+   "dlchae": "blue"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc04-gsx-no-tab-01": {
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc05-gs1-13rows-01": {
+  "correct": {
+   "AthlonGold": "green",
+   "Baraashkaaa": "blue",
+   "Cxnnamon__": "red",
+   "GWN_W0ut": "red",
+   "Golpo": "green",
+   "KingKyongG": "green",
+   "Lorelayy": "blue",
+   "Nummy125": "red",
+   "Skydeaf": "yellow",
+   "darkshadows4523": "green",
+   "flamefragsfan906": "yellow",
+   "juakguakji": "yellow",
+   "vladyshaq": "blue"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc05-gs2-13rows-01": {
+  "correct": {
+   "AthlonGold": "green",
+   "Baraashkaaa": "blue",
+   "Cxnnamon__": "red",
+   "GWN_W0ut": "red",
+   "Golpo": "green",
+   "Hoursered": "blue",
+   "KingKyongG": "green",
+   "Lorelayy": "blue",
+   "Nummy125": "red",
+   "Skydeaf": "yellow",
+   "darkshadows4523": "green",
+   "juakguakji": "yellow",
+   "vladyshaq": "blue"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc05-gs3-15rows-01": {
+  "correct": {
+   "AthlonGold": "green",
+   "Baraashkaaa": "blue",
+   "Cxnnamon__": "red",
+   "GWN_W0ut": "red",
+   "Hoursered": "blue",
+   "KingKyongG": "green",
+   "Lorelayy": "blue",
+   "Nummy125": "red",
+   "Skydeaf": "yellow",
+   "darkshadows4523": "green",
+   "flamefragsfan906": "yellow",
+   "juakguakji": "yellow",
+   "pommel1234": "red",
+   "vladyshaq": "blue"
+  },
+  "wrong": {},
+  "unknown": {
+   "Golpo": "label green"
+  },
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc05-gsx-no-tab-01": {
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc17-gs1-16rows-01": {
+  "correct": {
+   "Bummamiya": "blue",
+   "Craziest_12": "green",
+   "FreshCaptain": "red",
+   "Happy_0808": "red",
+   "IronMaster1257": "blue",
+   "MC_Davie": "green",
+   "Oakencrown13": "blue",
+   "Skydeaf": "yellow",
+   "The_General_Ice": "red",
+   "The_Holy_Ace": "red",
+   "Zinc3200": "blue",
+   "blazes34": "yellow",
+   "milky_way128": "green",
+   "sourornot": "yellow",
+   "v7tom": "green",
+   "zlobus2707": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc17-gs1-16rows-02": {
+  "correct": {
+   "Bummamiya": "blue",
+   "Craziest_12": "green",
+   "FreshCaptain": "red",
+   "Happy_0808": "red",
+   "IronMaster1257": "blue",
+   "MC_Davie": "green",
+   "Oakencrown13": "blue",
+   "Skydeaf": "yellow",
+   "The_General_Ice": "red",
+   "The_Holy_Ace": "red",
+   "Zinc3200": "blue",
+   "blazes34": "yellow",
+   "milky_way128": "green",
+   "sourornot": "yellow",
+   "v7tom": "green",
+   "zlobus2707": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc17-gs2-16rows-01": {
+  "correct": {
+   "Bummamiya": "blue",
+   "Craziest_12": "green",
+   "FreshCaptain": "red",
+   "Happy_0808": "red",
+   "IronMaster1257": "blue",
+   "MC_Davie": "green",
+   "Oakencrown13": "blue",
+   "Skydeaf": "yellow",
+   "The_General_Ice": "red",
+   "The_Holy_Ace": "red",
+   "Zinc3200": "blue",
+   "blazes34": "yellow",
+   "milky_way128": "green",
+   "sourornot": "yellow",
+   "v7tom": "green",
+   "zlobus2707": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc17-gs3-game-start-16rows-01": {
+  "correct": {
+   "Bummamiya": "blue",
+   "Craziest_12": "green",
+   "FreshCaptain": "red",
+   "Happy_0808": "red",
+   "IronMaster1257": "blue",
+   "MC_Davie": "green",
+   "Oakencrown13": "blue",
+   "Skydeaf": "yellow",
+   "The_General_Ice": "red",
+   "The_Holy_Ace": "red",
+   "Zinc3200": "blue",
+   "blazes34": "yellow",
+   "milky_way128": "green",
+   "sourornot": "yellow",
+   "v7tom": "green",
+   "zlobus2707": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-tc17-gs4-16rows-01": {
+  "correct": {
+   "Bummamiya": "blue",
+   "Craziest_12": "green",
+   "FreshCaptain": "red",
+   "Happy_0808": "red",
+   "IronMaster1257": "blue",
+   "MC_Davie": "green",
+   "Oakencrown13": "blue",
+   "Skydeaf": "yellow",
+   "The_General_Ice": "red",
+   "The_Holy_Ace": "red",
+   "Zinc3200": "blue",
+   "blazes34": "yellow",
+   "milky_way128": "green",
+   "sourornot": "yellow",
+   "v7tom": "green",
+   "zlobus2707": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-vanilla-gs2-12rows-01": {
+  "correct": {
+   "Aodo0407": "blue",
+   "BlockyRoom27934": "yellow",
+   "DOMINATOR76": "yellow",
+   "FunPlayer2327": "blue",
+   "JozeGOOD": "yellow",
+   "Nickorange1": "green",
+   "Skydeaf": "green",
+   "SmallCrimson": "red",
+   "Thought24": "yellow",
+   "YeahSoGood": "red",
+   "lbrsn": "green",
+   "n9ice": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-vanilla-gs2-12rows-02": {
+  "correct": {
+   "BlockyRoom27934": "yellow",
+   "ColdAndSonic": "red",
+   "DOMINATOR76": "yellow",
+   "FunPlayer2327": "blue",
+   "JozeGOOD": "yellow",
+   "Nickorange1": "green",
+   "Skydeaf": "green",
+   "SmallCrimson": "red",
+   "Thought24": "yellow",
+   "YeahSoGood": "red",
+   "lbrsn": "green",
+   "n9ice": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-vanilla-gs2-12rows-03": {
+  "correct": {
+   "BlockyRoom27934": "yellow",
+   "ColdAndSonic": "red",
+   "DOMINATOR76": "yellow",
+   "FunPlayer2327": "blue",
+   "JozeGOOD": "yellow",
+   "Nickorange1": "green",
+   "Skydeaf": "green",
+   "SmallCrimson": "red",
+   "Thought24": "yellow",
+   "YeahSoGood": "red",
+   "lbrsn": "green",
+   "n9ice": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-vanilla-gs2-14rows-01": {
+  "correct": {
+   "Dewier12": "red",
+   "DiamantySD15": "green",
+   "Glados987": "blue",
+   "Jcyuri": "yellow",
+   "NOOB_1490": "green",
+   "Sam74538": "red",
+   "Skydeaf": "blue",
+   "Tigre_CPVP": "red",
+   "Tizii_199": "green",
+   "YSFKB": "blue",
+   "ZixBylfEw": "red",
+   "_wductien": "green",
+   "dlchae": "blue",
+   "interble": "yellow"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-vanilla-gs2-14rows-02": {
+  "correct": {
+   "AthlonGold": "green",
+   "Baraashkaaa": "blue",
+   "Cxnnamon__": "red",
+   "GWN_W0ut": "red",
+   "Golpo": "green",
+   "Hoursered": "blue",
+   "Lorelayy": "blue",
+   "Nummy125": "red",
+   "Skydeaf": "yellow",
+   "darkshadows4523": "green",
+   "flamefragsfan906": "yellow",
+   "juakguakji": "yellow",
+   "pommel1234": "red",
+   "vladyshaq": "blue"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-vanilla-gs2-16rows-01": {
+  "correct": {
+   "Aodo0407": "blue",
+   "BlockyRoom27934": "yellow",
+   "ColdAndSonic": "red",
+   "DDay117": "blue",
+   "DOMINATOR76": "yellow",
+   "FunPlayer2327": "blue",
+   "JozeGOOD": "yellow",
+   "Nickorange1": "green",
+   "Skydeaf": "green",
+   "SmallCrimson": "red",
+   "Sorcier4Wish": "green",
+   "Thought24": "yellow",
+   "YeahSoGood": "red",
+   "cheeseball0407": "blue",
+   "lbrsn": "green",
+   "n9ice": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-vanilla-gs2-16rows-02": {
+  "correct": {
+   "Aodo0407": "blue",
+   "BlockyRoom27934": "yellow",
+   "ColdAndSonic": "red",
+   "DDay117": "blue",
+   "DOMINATOR76": "yellow",
+   "FunPlayer2327": "blue",
+   "JozeGOOD": "yellow",
+   "Nickorange1": "green",
+   "Skydeaf": "green",
+   "SmallCrimson": "red",
+   "Sorcier4Wish": "green",
+   "Thought24": "yellow",
+   "YeahSoGood": "red",
+   "cheeseball0407": "blue",
+   "lbrsn": "green",
+   "n9ice": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-vanilla-gs2-16rows-03": {
+  "correct": {
+   "AthlonGold": "green",
+   "Baraashkaaa": "blue",
+   "Cxnnamon__": "red",
+   "Drwng": "yellow",
+   "GWN_W0ut": "red",
+   "Golpo": "green",
+   "Hoursered": "blue",
+   "KingKyongG": "green",
+   "Lorelayy": "blue",
+   "Nummy125": "red",
+   "Skydeaf": "yellow",
+   "darkshadows4523": "green",
+   "flamefragsfan906": "yellow",
+   "juakguakji": "yellow",
+   "pommel1234": "red",
+   "vladyshaq": "blue"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-vanilla-gs2-game-start-14rows-01": {
+  "correct": {
+   "Dewier12": "red",
+   "DiamantySD15": "green",
+   "Glados987": "blue",
+   "NOOB_1490": "green",
+   "Sam74538": "red",
+   "Skydeaf": "blue",
+   "Tigre_CPVP": "red",
+   "Tizii_199": "green",
+   "YSFKB": "blue",
+   "ZixBylfEw": "red",
+   "_wductien": "green",
+   "dlchae": "blue",
+   "interble": "yellow"
+  },
+  "wrong": {},
+  "unknown": {
+   "Jcyuri": "label yellow"
+  },
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-vanilla-gs2-game-start-16rows-01": {
+  "correct": {
+   "Aodo0407": "blue",
+   "BlockyRoom27934": "yellow",
+   "ColdAndSonic": "red",
+   "DDay117": "blue",
+   "DOMINATOR76": "yellow",
+   "FunPlayer2327": "blue",
+   "JozeGOOD": "yellow",
+   "Nickorange1": "green",
+   "Skydeaf": "green",
+   "SmallCrimson": "red",
+   "Sorcier4Wish": "green",
+   "Thought24": "yellow",
+   "YeahSoGood": "red",
+   "cheeseball0407": "blue",
+   "lbrsn": "green",
+   "n9ice": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-vanilla-gs2-game-start-respawning-6rows-01": {
+  "correct": {
+   "ColdAndSonic": "red",
+   "FunPlayer2327": "blue",
+   "Skydeaf": null,
+   "SmallCrimson": "red",
+   "YeahSoGood": "red",
+   "n9ice": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-vanilla-gs2-no-tab-01": {
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-vanilla-gs2-no-tab-02": {
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-vanilla-gs2-no-tab-03": {
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-vanilla-gs2-respawning-10rows-01": {
+  "correct": {
+   "BlockyRoom27934": "yellow",
+   "DOMINATOR76": "yellow",
+   "FunPlayer2327": "blue",
+   "JozeGOOD": "yellow",
+   "Nickorange1": "green",
+   "Skydeaf": null,
+   "SmallCrimson": "red",
+   "Thought24": "yellow",
+   "lbrsn": "green",
+   "n9ice": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-vanilla-gs2-respawning-6rows-01": {
+  "correct": {
+   "ColdAndSonic": "red",
+   "FunPlayer2327": "blue",
+   "Nickorange1": "green",
+   "Skydeaf": null,
+   "SmallCrimson": "red",
+   "YeahSoGood": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-lunar-vanilla-gs2-respawning-covered-12rows-01": {
+  "correct": {
+   "FunPlayer2327": "blue",
+   "Skydeaf": null
+  },
+  "wrong": {},
+  "unknown": {
+   "BlockyRoom27934": "label yellow",
+   "ColdAndSonic": "label red",
+   "DOMINATOR76": "label yellow",
+   "JozeGOOD": "label yellow",
+   "Nickorange1": "label green",
+   "SmallCrimson": "label red",
+   "Thought24": "label yellow",
+   "YeahSoGood": "label red",
+   "lbrsn": "label green",
+   "n9ice": "label red"
+  },
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc01-gs1-15rows-01": {
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "Not_Bacon80": "aqua",
+   "QSEG123": "pink",
+   "Seanlannx": "red",
+   "Skydeaf": "aqua",
+   "TzupuBusniucu": "gray",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "kuxazoo": "red",
+   "opdar": "white",
+   "parajo2": "yellow",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc01-gs1-16rows-01": {
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "Not_Bacon80": "aqua",
+   "QSEG123": "pink",
+   "Seanlannx": "red",
+   "Skydeaf": "aqua",
+   "TheWo1fyRobin": "blue",
+   "TzupuBusniucu": "gray",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "kuxazoo": "red",
+   "opdar": "white",
+   "parajo2": "yellow",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc01-gs4-16rows-01": {
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "Not_Bacon80": "aqua",
+   "QSEG123": "pink",
+   "Seanlannx": "red",
+   "Skydeaf": "aqua",
+   "TheWo1fyRobin": "blue",
+   "TzupuBusniucu": "gray",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "kuxazoo": "red",
+   "opdar": "white",
+   "parajo2": "yellow",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc02-gs2-15rows-01": {
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "Not_Bacon80": "aqua",
+   "QSEG123": "pink",
+   "Seanlannx": "red",
+   "Skydeaf": "aqua",
+   "TheWo1fyRobin": "blue",
+   "TzupuBusniucu": "gray",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "kuxazoo": "red",
+   "opdar": "white",
+   "parajo2": "yellow",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc02-gs2-16rows-01": {
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "Not_Bacon80": "aqua",
+   "QSEG123": "pink",
+   "Seanlannx": "red",
+   "Skydeaf": "aqua",
+   "TheWo1fyRobin": "blue",
+   "TzupuBusniucu": "gray",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "kuxazoo": "red",
+   "opdar": "white",
+   "parajo2": "yellow",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc02-gs3-13rows-01": {
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "QSEG123": "pink",
+   "Seanlannx": "red",
+   "Skydeaf": "aqua",
+   "TheWo1fyRobin": "blue",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "kuxazoo": "red",
+   "opdar": "white",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc02-gs3-14rows-01": {
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "Not_Bacon80": "aqua",
+   "QSEG123": "pink",
+   "Seanlannx": "red",
+   "Skydeaf": "aqua",
+   "TheWo1fyRobin": "blue",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "kuxazoo": "red",
+   "opdar": "white",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc03-gs1-13rows-01": {
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "Not_Bacon80": "aqua",
+   "QSEG123": "pink",
+   "Skydeaf": "aqua",
+   "TzupuBusniucu": "gray",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "opdar": "white",
+   "parajo2": "yellow",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc03-gs2-14rows-01": {
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "Not_Bacon80": "aqua",
+   "QSEG123": "pink",
+   "Skydeaf": "aqua",
+   "TheWo1fyRobin": "blue",
+   "TzupuBusniucu": "gray",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "opdar": "white",
+   "parajo2": "yellow",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc04-gs1-game-start-16rows-01": {
+  "correct": {
+   "LeoEms1100": "green",
+   "LiankorIsBack": "red",
+   "LoveliuleiYa": "pink",
+   "SERGERT111": "green",
+   "Sara503": "yellow",
+   "Skydeaf": "gray",
+   "SquashKaskade46": "white",
+   "Stracke_ciresi": "pink",
+   "Streigant": "white",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "kailywithrd": "yellow",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc04-gs1-spectator-8rows-01": {
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "QSEG123": "pink",
+   "Skydeaf": null,
+   "TheWo1fyRobin": "blue",
+   "blutness": "blue",
+   "opdar": "white",
+   "wjddmsS2": "pink"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc04-gs1-spectator-9rows-01": {
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "QSEG123": "pink",
+   "Skydeaf": null,
+   "TheWo1fyRobin": "blue",
+   "blutness": "blue",
+   "opdar": "white",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc04-gs1-spectator-respawning-9rows-01": {
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "QSEG123": "pink",
+   "Skydeaf": null,
+   "TheWo1fyRobin": "blue",
+   "blutness": "blue",
+   "opdar": "white",
+   "wjddmsS2": "pink",
+   "yeloverye": null
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc04-gs2-16rows-01": {
+  "correct": {
+   "LeoEms1100": "green",
+   "LiankorIsBack": "red",
+   "LoveliuleiYa": "pink",
+   "SERGERT111": "green",
+   "Sara503": "yellow",
+   "Skydeaf": "gray",
+   "SquashKaskade46": "white",
+   "Stracke_ciresi": "pink",
+   "Streigant": "white",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "kailywithrd": "yellow",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc04-gs3-16rows-01": {
+  "correct": {
+   "LeoEms1100": "green",
+   "LiankorIsBack": "red",
+   "LoveliuleiYa": "pink",
+   "SERGERT111": "green",
+   "Sara503": "yellow",
+   "Skydeaf": "gray",
+   "SquashKaskade46": "white",
+   "Stracke_ciresi": "pink",
+   "Streigant": "white",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "kailywithrd": "yellow",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc04-gs4-14rows-01": {
+  "correct": {
+   "LeoEms1100": "green",
+   "LiankorIsBack": "red",
+   "LoveliuleiYa": "pink",
+   "Sara503": "yellow",
+   "Skydeaf": "gray",
+   "SquashKaskade46": "white",
+   "Stracke_ciresi": "pink",
+   "Streigant": "white",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "kailywithrd": "yellow",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc04-gs4-15rows-01": {
+  "correct": {
+   "LeoEms1100": "green",
+   "LiankorIsBack": "red",
+   "LoveliuleiYa": "pink",
+   "SERGERT111": "green",
+   "Sara503": "yellow",
+   "Skydeaf": "gray",
+   "SquashKaskade46": "white",
+   "Stracke_ciresi": "pink",
+   "Streigant": "white",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "kailywithrd": "yellow",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc05-gs3-12rows-01": {
+  "correct": {
+   "LiankorIsBack": "red",
+   "LoveliuleiYa": "pink",
+   "SERGERT111": "green",
+   "Skydeaf": "gray",
+   "SquashKaskade46": "white",
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc05-gs3-16rows-01": {
+  "correct": {
+   "LeoEms1100": "green",
+   "LiankorIsBack": "red",
+   "LoveliuleiYa": "pink",
+   "SERGERT111": "green",
+   "Sara503": "yellow",
+   "Skydeaf": "gray",
+   "SquashKaskade46": "white",
+   "Stracke_ciresi": "pink",
+   "Streigant": "white",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "kailywithrd": "yellow",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc05-gs4-12rows-01": {
+  "correct": {
+   "LiankorIsBack": "red",
+   "LoveliuleiYa": "pink",
+   "SERGERT111": "green",
+   "Skydeaf": "gray",
+   "SquashKaskade46": "white",
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc05-gs4-14rows-01": {
+  "correct": {
+   "LeoEms1100": "green",
+   "LiankorIsBack": "red",
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "SquashKaskade46": "white",
+   "Stracke_ciresi": "pink",
+   "Streigant": "white",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "kailywithrd": "yellow",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc05-gs4-15rows-01": {
+  "correct": {
+   "LeoEms1100": "green",
+   "LiankorIsBack": "red",
+   "LoveliuleiYa": "pink",
+   "Sara503": "yellow",
+   "Skydeaf": "gray",
+   "SquashKaskade46": "white",
+   "Stracke_ciresi": "pink",
+   "Streigant": "white",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "kailywithrd": "yellow",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc06-gs1-8rows-01": {
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc06-gs1-respawning-8rows-01": {
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": null,
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "iKASD6": "gray",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc06-gs1-respawning-8rows-02": {
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": null,
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc06-gs1-respawning-9rows-01": {
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": null,
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": null,
+   "iKASD6": "gray",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc06-gs1-respawning-9rows-02": {
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": null,
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc06-gs1-respawning-9rows-03": {
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": null,
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": null,
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc06-gs2-9rows-01": {
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc06-gs4-9rows-01": {
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc07-gs2-8rows-01": {
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc07-gs2-respawning-9rows-01": {
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
+   "Warush": "red",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": null,
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc07-gs3-8rows-01": {
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc07-gs4-8rows-01": {
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc08-gs1-8rows-01": {
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc08-gs1-no-tab-01": {
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc08-gs2-7rows-01": {
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc08-gs2-8rows-01": {
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": "aqua",
+   "zjee": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc08-gs3-7rows-01": {
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": "aqua"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc08-gs3-respawning-7rows-01": {
+  "correct": {
+   "LoveliuleiYa": "pink",
+   "Skydeaf": "gray",
+   "Stracke_ciresi": "pink",
+   "commentory": "blue",
+   "elYanB": "blue",
+   "iKASD6": "gray",
+   "lumiysa": null
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc10-gs2-14rows-01": {
+  "correct": {
+   "BoyTommy": "blue",
+   "Lordkatoa": "yellow",
+   "Skydeaf": "red",
+   "Terracore789": "pink",
+   "ToxicManoah": "gray",
+   "TzupuBusniucu": "aqua",
+   "XxxHRKxxX": "green",
+   "ZimbleMeister": "aqua",
+   "_t1mothy_": "pink",
+   "halicarny": "yellow",
+   "jiiiieun2": "blue",
+   "mr_syl": "gray",
+   "nobomarl1019": "green",
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc10-gs3-13rows-01": {
+  "correct": {
+   "BoyTommy": "blue",
+   "Lordkatoa": "yellow",
+   "Skydeaf": "red",
+   "Terracore789": "pink",
+   "ToxicManoah": "gray",
+   "TzupuBusniucu": "aqua",
+   "XxxHRKxxX": "green",
+   "ZimbleMeister": "aqua",
+   "_t1mothy_": "pink",
+   "halicarny": "yellow",
+   "jiiiieun2": "blue",
+   "mr_syl": "gray",
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc10-gs3-14rows-01": {
+  "correct": {
+   "BoyTommy": "blue",
+   "Lordkatoa": "yellow",
+   "Skydeaf": "red",
+   "Terracore789": "pink",
+   "ToxicManoah": "gray",
+   "TzupuBusniucu": "aqua",
+   "XxxHRKxxX": "green",
+   "ZimbleMeister": "aqua",
+   "_t1mothy_": "pink",
+   "halicarny": "yellow",
+   "jiiiieun2": "blue",
+   "mr_syl": "gray",
+   "nobomarl1019": "green",
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc10-gs4-13rows-01": {
+  "correct": {
+   "BoyTommy": "blue",
+   "Lordkatoa": "yellow",
+   "Skydeaf": "red",
+   "Terracore789": "pink",
+   "ToxicManoah": "gray",
+   "TzupuBusniucu": "aqua",
+   "XxxHRKxxX": "green",
+   "ZimbleMeister": "aqua",
+   "_t1mothy_": "pink",
+   "halicarny": "yellow",
+   "jiiiieun2": "blue",
+   "mr_syl": "gray",
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc10-gs4-respawning-14rows-01": {
+  "correct": {
+   "BoyTommy": "blue",
+   "Lordkatoa": "yellow",
+   "Skydeaf": "red",
+   "Terracore789": "pink",
+   "ToxicManoah": "gray",
+   "TzupuBusniucu": "aqua",
+   "XxxHRKxxX": "green",
+   "ZimbleMeister": "aqua",
+   "_t1mothy_": "pink",
+   "halicarny": "yellow",
+   "jiiiieun2": "blue",
+   "nobomarl1019": null,
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {
+   "mr_syl": "label gray"
+  },
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc12-gs1-10rows-01": {
+  "correct": {
+   "BoyTommy": "blue",
+   "Skydeaf": "red",
+   "ToxicManoah": "gray",
+   "TzupuBusniucu": "aqua",
+   "XxxHRKxxX": "green",
+   "ZimbleMeister": "aqua",
+   "jiiiieun2": "blue",
+   "mr_syl": "gray",
+   "nobomarl1019": "green",
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc12-gs3-10rows-01": {
+  "correct": {
+   "BoyTommy": "blue",
+   "Skydeaf": "red",
+   "ToxicManoah": "gray",
+   "TzupuBusniucu": "aqua",
+   "XxxHRKxxX": "green",
+   "ZimbleMeister": "aqua",
+   "jiiiieun2": "blue",
+   "mr_syl": "gray",
+   "nobomarl1019": "green",
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc12-gs3-9rows-01": {
+  "correct": {
+   "BoyTommy": "blue",
+   "Skydeaf": "red",
+   "ToxicManoah": "gray",
+   "TzupuBusniucu": "aqua",
+   "ZimbleMeister": "aqua",
+   "jiiiieun2": "blue",
+   "mr_syl": "gray",
+   "nobomarl1019": "green",
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc12-gs3-9rows-02": {
+  "correct": {
+   "BoyTommy": "blue",
+   "Skydeaf": "red",
+   "TzupuBusniucu": "aqua",
+   "XxxHRKxxX": "green",
+   "ZimbleMeister": "aqua",
+   "jiiiieun2": "blue",
+   "mr_syl": "gray",
+   "nobomarl1019": "green",
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc12-gs3-respawning-10rows-01": {
+  "correct": {
+   "BoyTommy": "blue",
+   "Skydeaf": "red",
+   "ToxicManoah": "gray",
+   "TzupuBusniucu": "aqua",
+   "XxxHRKxxX": null,
+   "ZimbleMeister": "aqua",
+   "jiiiieun2": "blue",
+   "mr_syl": "gray",
+   "nobomarl1019": "green",
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc12-gs4-10rows-01": {
+  "correct": {
+   "BoyTommy": "blue",
+   "Skydeaf": "red",
+   "ToxicManoah": "gray",
+   "TzupuBusniucu": "aqua",
+   "XxxHRKxxX": "green",
+   "ZimbleMeister": "aqua",
+   "jiiiieun2": "blue",
+   "mr_syl": "gray",
+   "nobomarl1019": "green",
+   "totalny_notch558": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc16-gs2-16rows-01": {
+  "correct": {
+   "Antlu236": "yellow",
+   "E_C_M_U_Bro": "green",
+   "Eli2017_A": "white",
+   "FlicksyJet789": "gray",
+   "Gurrase": "aqua",
+   "Haminations2026": "blue",
+   "Johannesjocke": "aqua",
+   "Lappenoeffnerlol": "gray",
+   "RoryGlec": "yellow",
+   "Skydeaf": "blue",
+   "Zipted": "pink",
+   "_ItzRiptide": "pink",
+   "aufity": "green",
+   "headsnaps": "red",
+   "plocque": "white",
+   "plsfixlag": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc16-gs4-16rows-01": {
+  "correct": {
+   "Antlu236": "yellow",
+   "E_C_M_U_Bro": "green",
+   "Eli2017_A": "white",
+   "FlicksyJet789": "gray",
+   "Gurrase": "aqua",
+   "Haminations2026": "blue",
+   "Johannesjocke": "aqua",
+   "Lappenoeffnerlol": "gray",
+   "RoryGlec": "yellow",
+   "Skydeaf": "blue",
+   "Zipted": "pink",
+   "_ItzRiptide": "pink",
+   "aufity": "green",
+   "headsnaps": "red",
+   "plocque": "white",
+   "plsfixlag": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc17-gs1-15rows-01": {
+  "correct": {
+   "Antlu236": "yellow",
+   "E_C_M_U_Bro": "green",
+   "Eli2017_A": "white",
+   "FlicksyJet789": "gray",
+   "Gurrase": "aqua",
+   "Johannesjocke": "aqua",
+   "Lappenoeffnerlol": "gray",
+   "RoryGlec": "yellow",
+   "Skydeaf": "blue",
+   "Zipted": "pink",
+   "_ItzRiptide": "pink",
+   "aufity": "green",
+   "headsnaps": "red",
+   "plocque": "white",
+   "plsfixlag": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc17-gs3-spectator-15rows-01": {
+  "correct": {
+   "Antlu236": "yellow",
+   "E_C_M_U_Bro": "green",
+   "Eli2017_A": "white",
+   "FlicksyJet789": "gray",
+   "Gurrase": "aqua",
+   "Johannesjocke": "aqua",
+   "Lappenoeffnerlol": "gray",
+   "RoryGlec": "yellow",
+   "Skydeaf": null,
+   "Zipted": "pink",
+   "_ItzRiptide": "pink",
+   "aufity": "green",
+   "headsnaps": "red",
+   "plocque": "white",
+   "plsfixlag": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc17-gs4-spectator-13rows-01": {
+  "correct": {
+   "Antlu236": "yellow",
+   "E_C_M_U_Bro": "green",
+   "Eli2017_A": "white",
+   "FlicksyJet789": "gray",
+   "Johannesjocke": "aqua",
+   "Lappenoeffnerlol": "gray",
+   "RoryGlec": "yellow",
+   "Skydeaf": null,
+   "_ItzRiptide": "pink",
+   "aufity": "green",
+   "headsnaps": "red",
+   "plocque": "white",
+   "plsfixlag": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc17-gs4-spectator-14rows-01": {
+  "correct": {
+   "Antlu236": "yellow",
+   "E_C_M_U_Bro": "green",
+   "Eli2017_A": "white",
+   "FlicksyJet789": "gray",
+   "Johannesjocke": "aqua",
+   "Lappenoeffnerlol": "gray",
+   "RoryGlec": "yellow",
+   "Skydeaf": null,
+   "Zipted": "pink",
+   "_ItzRiptide": "pink",
+   "aufity": "green",
+   "headsnaps": "red",
+   "plocque": "white",
+   "plsfixlag": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc17-gs4-spectator-14rows-02": {
+  "correct": {
+   "Antlu236": "yellow",
+   "E_C_M_U_Bro": "green",
+   "Eli2017_A": "white",
+   "Gurrase": "aqua",
+   "Johannesjocke": "aqua",
+   "Lappenoeffnerlol": "gray",
+   "RoryGlec": "yellow",
+   "Skydeaf": null,
+   "Zipted": "pink",
+   "_ItzRiptide": "pink",
+   "aufity": "green",
+   "headsnaps": "red",
+   "plocque": "white",
+   "plsfixlag": "red"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-tc17-gs4-spectator-respawning-15rows-01": {
+  "correct": {
+   "Antlu236": "yellow",
+   "E_C_M_U_Bro": "green",
+   "Eli2017_A": "white",
+   "FlicksyJet789": "gray",
+   "Gurrase": null,
+   "RoryGlec": "yellow",
+   "Skydeaf": null,
+   "Zipted": "pink",
+   "_ItzRiptide": "pink",
+   "aufity": "green",
+   "headsnaps": "red",
+   "plocque": "white",
+   "plsfixlag": "red"
+  },
+  "wrong": {},
+  "unknown": {
+   "Johannesjocke": "label aqua",
+   "Lappenoeffnerlol": "label gray"
+  },
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-vanilla-gs1-16rows-01": {
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "Not_Bacon80": "aqua",
+   "QSEG123": "pink",
+   "Seanlannx": "red",
+   "Skydeaf": "aqua",
+   "TheWo1fyRobin": "blue",
+   "TzupuBusniucu": "gray",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "kuxazoo": "red",
+   "opdar": "white",
+   "parajo2": "yellow",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-vanilla-gs1-game-start-16rows-01": {
+  "correct": {
+   "Corays": "white",
+   "Himashm": "green",
+   "Not_Bacon80": "aqua",
+   "QSEG123": "pink",
+   "Seanlannx": "red",
+   "Skydeaf": "aqua",
+   "TheWo1fyRobin": "blue",
+   "TzupuBusniucu": "gray",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "kuxazoo": "red",
+   "opdar": "white",
+   "parajo2": "yellow",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-vanilla-gs4-16rows-01": {
+  "correct": {
+   "Corays": "white",
+   "Not_Bacon80": "aqua",
+   "Seanlannx": "red",
+   "Skydeaf": "aqua",
+   "TheWo1fyRobin": "blue",
+   "TzupuBusniucu": "gray",
+   "ZimbleMeister": "gray",
+   "blutness": "blue",
+   "jamikatoka": "yellow",
+   "kuxazoo": "red",
+   "opdar": "white",
+   "parajo2": "yellow",
+   "wjddmsS2": "pink",
+   "yeloverye": "green"
+  },
+  "wrong": {},
+  "unknown": {
+   "Himashm": "label green",
+   "QSEG123": "label pink"
+  },
+  "npc": {},
+  "extra": {}
+ },
+ "tabcap-win-vanilla-vanilla-gs4-no-tab-01": {
+  "correct": {},
+  "wrong": {},
+  "unknown": {},
+  "npc": {},
+  "extra": {}
+ }
+}
